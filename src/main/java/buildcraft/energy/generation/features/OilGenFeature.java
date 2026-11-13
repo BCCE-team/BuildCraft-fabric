@@ -2,7 +2,9 @@ package buildcraft.energy.generation.features;
 
 import java.util.List;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.chunk.ChunkGenerator;
 
 import buildcraft.api.v2.BuildCraftApi;
 import buildcraft.api.v2.BuildCraftServices;
@@ -19,10 +21,20 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.levelgen.feature.Feature;
-import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
-import buildcraft.lib.compat.LevelCompat;
 
-public class OilGenFeature extends Feature<OilFeatureConfiguration>{
+
+public final class OilGenFeature implements Feature {
+    /** 26.3 registers a feature MapCodec (not a Feature subclass) in FEATURE_TYPE. */
+    public static final MapCodec<OilGenFeature> CODEC = OilFeatureConfiguration.CODEC
+        .xmap(OilGenFeature::new, OilGenFeature::configuration);
+
+    private final OilFeatureConfiguration configuration;
+    public OilGenFeature(OilFeatureConfiguration configuration) {
+        this.configuration = configuration;
+    }
+    public OilFeatureConfiguration configuration() { return configuration; }
+    @Override public MapCodec<OilGenFeature> codec() { return CODEC; }
+
 
     /** The distance that oil generation will be checked to see if their structures overlap with the currently
      * generating chunk. This should be large enough that all oil generation can fit inside this radius. If this number
@@ -30,17 +42,13 @@ public class OilGenFeature extends Feature<OilFeatureConfiguration>{
     private static final int MAX_CHUNK_RADIUS = 5;
 
 
-    public OilGenFeature(Codec<OilFeatureConfiguration> p_65786_) {
-        super(p_65786_);
-    }
-
-    public boolean place(FeaturePlaceContext<OilFeatureConfiguration> context) {
-        WorldGenLevel world = context.level();
+    @Override
+    public boolean place(WorldGenLevel world, ChunkGenerator generator, RandomSource random, BlockPos origin) {
         if (!BCEnergyConfig.enableOilGeneration) {
             return false;
         }
 
-        ResourceDepositRule rule = resolveOilRule(world, contextOrigin(context));
+        ResourceDepositRule rule = resolveOilRule(world, origin);
         if (rule == null) {
             return false;
         }
@@ -49,19 +57,16 @@ public class OilGenFeature extends Feature<OilFeatureConfiguration>{
             return false;
         }
         double frequency = rule.frequencyMultiplier();
-        if (frequency <= 0 || (frequency < 1.0 && context.random().nextDouble() >= frequency)) {
+        if (frequency <= 0 || (frequency < 1.0 && random.nextDouble() >= frequency)) {
             return false;
         }
 
-        ChunkPos chunkPos = new ChunkPos(context.origin().getX() >> 4, context.origin().getZ() >> 4);
-        // Cache entries use an explicit per-request configuration; worldgen needs no global lock.
-        return placeLocked(world, chunkPos.x(), chunkPos.z(), context.config());
+        ChunkPos chunkPos = new ChunkPos(origin.getX() >> 4, origin.getZ() >> 4);
+        // OilGenerator owns a short-lived shared cache. Worldgen worker threads
+        // may generate distinct dimensions concurrently.
+        return placeLocked(world, chunkPos.x(), chunkPos.z(), configuration);
     }
 
-
-    private static BlockPos contextOrigin(FeaturePlaceContext<OilFeatureConfiguration> context) {
-        return context.origin();
-    }
 
     private static ResourceDepositRule resolveOilRule(WorldGenLevel world, BlockPos origin) {
         Identifier dimension = world.getLevel().dimension().identifier();
@@ -87,8 +92,8 @@ public class OilGenFeature extends Feature<OilFeatureConfiguration>{
     private boolean placeLocked(WorldGenLevel world, int chunkX, int chunkZ,
             OilFeatureConfiguration configuration) {
         int count = 0;
-        BlockPos min = new BlockPos(chunkX << 4, LevelCompat.getMinBuildHeight(world), chunkZ << 4);
-        BlockPos max = new BlockPos((chunkX << 4) + 15, LevelCompat.getMaxBuildHeight(world) - 1,
+        BlockPos min = new BlockPos(chunkX << 4, world.getMinBuildHeight(), chunkZ << 4);
+        BlockPos max = new BlockPos((chunkX << 4) + 15, world.getMaxBuildHeight() - 1,
                 (chunkZ << 4) + 15);
         Box box = new Box(min, max);
 

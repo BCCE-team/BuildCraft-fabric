@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "buildcraftlib",
   "version": "8.0.29+26.3+fabric",
-  "provides": ["buildcraftcore"],
+  "provides": ["buildcraftcore", "buildcraftenergy"],
   "name": "BuildCraft Community Edition - Fabric 26.3 (restoration)",
   "description": "Work-in-progress Fabric 26.3 port of the current BCCE codebase.",
   "authors": ["CurativeTree, ShipovskijKorp, Memesis414, Smail and many other"],
@@ -20,5 +20,5 @@
     "minecraft": "26.3",
     "java": ">=25"
   },
-  "custom": { "buildcraft:port_target": "26.3-fabric", "buildcraft:port_stage": "core" }
+  "custom": { "buildcraft:port_target": "26.3-fabric", "buildcraft:port_stage": "energy" }
 }

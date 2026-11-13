@@ -1,13 +1,15 @@
 {
   "model": {
-    "type": "neoforge:fluid_container",
-    "textures": {
-      "particle": "minecraft:item/bucket",
-      "base": "minecraft:item/bucket",
-      "fluid": "buildcraftenergy:block/mask/bucket_surface"
-    },
-    "fluid": "buildcraftenergy:oil_heat_2",
-    "flip_gas": true,
-    "apply_fluid_luminosity": false
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "minecraft:item/bucket"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "buildcraftenergy:item/fluid_overlays/oil_searing_bucket"
+      }
+    ]
   }
 }

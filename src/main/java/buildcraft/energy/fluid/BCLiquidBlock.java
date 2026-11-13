@@ -34,7 +34,7 @@ public class BCLiquidBlock extends LiquidBlock {
 	protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean submerged) {
 		if(BCEnergyConfig.oilIsSticky && isStick)
 			entity.makeStuckInBlock(state	, new Vec3(0.25D, (double)0.05F, 0.25D));
-		if (sourceFluid.getFluidType().getTemperature() > 350) {
+		if (sourceFluid instanceof buildcraft.lib.fluid.BCFluid bc && bc.getHeatValue() >= 2) {
 			entity.lavaHurt();
 		}
 	}

@@ -159,6 +159,7 @@ public class BCEnergyConfig {
         parseResourceLocations(propDimensionBlacklist.get(), dimensionBlacklist, "dimensionBlacklist");
 
         OilGenerator.clearCache();
+        BCEnergy.refreshFlammability();
     }
 
     public static boolean isBiomeAllowed(Identifier biome) {

@@ -75,8 +75,10 @@ public class BCEnergyBlocks {
         );
 
     static void init(BCRegistryBinder bus) {
-        BLOCK_ENTITYS.register(bus);
+        // The MJ dynamo block entity resolves its owner block eagerly. Register
+        // blocks before block-entity types on Fabric, unlike event-driven NeoForge.
         BLOCKS.register(bus);
+        BLOCK_ENTITYS.register(bus);
     }
 
     public static List<ItemStack> getCreativeTabItems() {

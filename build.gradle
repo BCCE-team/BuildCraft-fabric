@@ -118,3 +118,21 @@ tasks.register('buildAndCollect') {
     description = 'Build Minecraft 26.3 Fabric after lib isolation is solved'
     dependsOn tasks.named('build')
 }
+
+// Energy stage gate: no NeoForge-only classes may enter the Fabric module.
+def verifyEnergyIsolation = tasks.register('verifyFabric263EnergyIsolation') {
+    group = 'verification'
+    description = 'Reject NeoForge references in Fabric Energy sources'
+    doLast {
+        def javaDir = file('src/main/java/buildcraft/energy')
+        def offenders = fileTree(javaDir).matching { include '**/*.java' }.files
+            .findAll { it.getText('UTF-8').contains('net.neoforged.') }
+            .collect { javaDir.toPath().relativize(it.toPath()).toString() }.sort()
+        if (!offenders.isEmpty()) {
+            throw new GradleException("Fabric 26.3 Energy has ${offenders.size()} NeoForge-only Java files:\n"
+                + offenders.take(80).join('\n'))
+        }
+    }
+}
+tasks.named('jar') { dependsOn verifyEnergyIsolation }
+tasks.named('check') { dependsOn verifyEnergyIsolation }

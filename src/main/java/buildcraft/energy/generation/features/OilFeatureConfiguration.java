@@ -3,18 +3,18 @@ package buildcraft.energy.generation.features;
 import java.util.List;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 
 public record OilFeatureConfiguration(List<Identifier> excludedBiomes, List<ExcessiveBiome> excessiveBiomes,
         List<Identifier> surfaceDepositBiomes, double oilWellGenerationRate,
         boolean genOilInEveryVanillaBiomes, boolean genOilInEveryModBiomes,
-        GenSetting genSetting) implements FeatureConfiguration {
+        GenSetting genSetting) {
 
-    public static final Codec<OilFeatureConfiguration> CODEC = RecordCodecBuilder.create(instance ->
+    public static final MapCodec<OilFeatureConfiguration> CODEC = RecordCodecBuilder.mapCodec(instance ->
         instance.group(
             Codec.list(Identifier.CODEC).fieldOf("excludedBiomes").forGetter(OilFeatureConfiguration::excludedBiomes),
             Codec.list(ExcessiveBiome.CODEC).fieldOf("excessiveBiomes").forGetter(OilFeatureConfiguration::excessiveBiomes),
