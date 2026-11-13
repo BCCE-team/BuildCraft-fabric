@@ -5,6 +5,7 @@ import buildcraft.core.BCCore;
 import buildcraft.energy.BCEnergy;
 import buildcraft.factory.BCFactory;
 import buildcraft.builders.BCBuilders;
+import buildcraft.robotics.BCRobotics;
 import net.fabricmc.api.ModInitializer;
 import buildcraft.lib.net.MessageManager;
 import buildcraft.lib.net.FabricServerState;
@@ -23,6 +24,7 @@ public final class BuildCraftFabric263 implements ModInitializer {
         buildcraft.transport.BCTransport.bootstrap();
         BCFactory.bootstrap();
         BCBuilders.bootstrap();
+        BCRobotics.bootstrap();
         // Module-dependent registries and marker caches must be finalized only
         // after the last installed BCCE gameplay module has bootstrapped.
         BCLib.finishModuleRegistration();

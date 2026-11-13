@@ -172,3 +172,24 @@ def verifyFactoryIsolation = tasks.register('verifyFabric263FactoryIsolation') {
 }
 tasks.named('jar') { dependsOn verifyFactoryIsolation }
 tasks.named('check') { dependsOn verifyFactoryIsolation }
+
+// Robotics stage gate: no NeoForge-owned API can leak into the Fabric robot runtime.
+def verifyRoboticsIsolation = tasks.register('verifyFabric263RoboticsIsolation') {
+    group = 'verification'
+    description = 'Reject NeoForge references in Fabric Robotics sources'
+    doLast {
+        def javaDir = file('src/main/java/buildcraft/robotics')
+        def offenders = fileTree(javaDir).matching { include '**/*.java' }.files
+            .findAll { file ->
+                def source = file.getText('UTF-8')
+                source.contains('net.neoforged.') || source.contains('net.minecraftforge.')
+            }
+            .collect { javaDir.toPath().relativize(it.toPath()).toString() }.sort()
+        if (!offenders.isEmpty()) {
+            throw new GradleException('Fabric 26.3 Robotics still depends on native Forge/NeoForge APIs:\n'
+                + offenders.take(80).join('\n'))
+        }
+    }
+}
+tasks.named('jar') { dependsOn verifyRoboticsIsolation }
+tasks.named('check') { dependsOn verifyRoboticsIsolation }
