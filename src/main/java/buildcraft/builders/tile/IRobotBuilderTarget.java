@@ -6,7 +6,6 @@ package buildcraft.builders.tile;
 
 import java.util.List;
 
-import buildcraft.robotics.internal.legacy.robots.EntityRobotBase;
 import buildcraft.builders.snapshot.BlueprintBuilder.RobotBuildResult;
 import buildcraft.builders.snapshot.BlueprintBuilder.RobotBuildTask;
 import net.minecraft.core.BlockPos;
@@ -20,15 +19,15 @@ public interface IRobotBuilderTarget {
 
     boolean canRobotsBuild();
 
-    List<RobotBuildTask> reserveRobotBuildTasks(EntityRobotBase robot, int maxItems);
+    List<RobotBuildTask> reserveRobotBuildTasks(IRobotBuildActor robot, int maxItems);
 
-    boolean buildRobotTask(EntityRobotBase robot, RobotBuildTask task);
+    boolean buildRobotTask(IRobotBuildActor robot, RobotBuildTask task);
 
     /** Rich result used by BuildCraft robots so no-op tasks do not consume work energy.
      *  The default preserves compatibility with third-party implementations of the legacy boolean contract. */
-    default RobotBuildResult buildRobotTaskResult(EntityRobotBase robot, RobotBuildTask task) {
+    default RobotBuildResult buildRobotTaskResult(IRobotBuildActor robot, RobotBuildTask task) {
         return buildRobotTask(robot, task) ? RobotBuildResult.COMMITTED : RobotBuildResult.FAILED;
     }
 
-    void releaseRobotBuildTask(EntityRobotBase robot, RobotBuildTask task);
+    void releaseRobotBuildTask(IRobotBuildActor robot, RobotBuildTask task);
 }

@@ -11,6 +11,7 @@ import buildcraft.builders.item.ItemConstructionMarker;
 import buildcraft.builders.item.ItemFillerPlanner;
 import buildcraft.builders.item.ItemSchematicSingle;
 import buildcraft.builders.item.ItemSnapshot;
+import buildcraft.builders.item.ItemQuarry;
 import buildcraft.builders.item.ItemSnapshot.EnumItemSnapshotType;
 import buildcraft.lib.CreativeTabManager;
 import com.mojang.serialization.MapCodec;
@@ -41,7 +42,9 @@ public class BCBuildersItems {
     public static final BCRegistryEntry<BlockItem> REPLACER_BLOCK_ITEM = RegistryCompat.registerItem(ITEMS, "replacer", () -> new BlockItem(BCBuildersBlocks.REPLACER.get(),RegistryCompat.itemProperties(new Item.Properties())));
     public static final BCRegistryEntry<ItemConstructionMarker> CONSTRUCTION_MARKER = RegistryCompat.registerItem(ITEMS, "marker_construction", () -> new ItemConstructionMarker(RegistryCompat.itemProperties(new Item.Properties())));
     public static final BCRegistryEntry<BlockItem> FRAME_BLOCK_ITEM = RegistryCompat.registerItem(ITEMS, "frame", () -> new BlockItem(BCBuildersBlocks.FRAME.get(),RegistryCompat.itemProperties(new Item.Properties())));
-    public static final BCRegistryEntry<BlockItem> QUARRY_BLOCK_ITEM = RegistryCompat.registerItem(ITEMS, "quarry", () -> new BlockItem(BCBuildersBlocks.QUARRY.get(),RegistryCompat.itemProperties(new Item.Properties())));
+    public static final BCRegistryEntry<ItemQuarry> QUARRY_BLOCK_ITEM = RegistryCompat.registerItem(ITEMS, "quarry", () ->
+        new ItemQuarry(BCBuildersBlocks.QUARRY.get(),
+            RegistryCompat.itemProperties(new Item.Properties()).stacksTo(1).enchantable(10)));
 
 
 
