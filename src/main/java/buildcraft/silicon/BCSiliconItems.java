@@ -18,6 +18,7 @@ import buildcraft.silicon.item.ItemPluggableGate;
 import buildcraft.silicon.item.ItemPluggableLens;
 import buildcraft.silicon.item.ItemRedstoneChipset;
 import buildcraft.silicon.plug.PluggablePulsar;
+import buildcraft.silicon.plug.FacadeStateManager;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperty;
@@ -97,6 +98,9 @@ public class BCSiliconItems {
     public static List<ItemStack> getFacadeTabItems() {
         if (!BCSiliconConfig.enableFacades) {
             return List.of();
+        }
+        if (!FacadeStateManager.isInitialized()) {
+            FacadeStateManager.init();
         }
         List<ItemStack> items = new ArrayList<>();
         CreativeTabManager.addItemVariants(PLUG_FACADE_ITEM.get(), items::add);

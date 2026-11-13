@@ -40,6 +40,11 @@ public final class BCWorldGeometry {
         active().endVertices();
     }
 
+    /** True while Fabric's level extraction callback is recording detached geometry. */
+    public static boolean isCapturing() {
+        return ACTIVE.get() != null;
+    }
+
     private static RecordingBuffers active() {
         RecordingBuffers result = ACTIVE.get();
         if (result == null) {

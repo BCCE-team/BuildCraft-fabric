@@ -13,14 +13,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import buildcraft.lib.compat.mc2612.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
-import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 
 import buildcraft.lib.client.model.MutableVertex;
 import buildcraft.lib.internal.debug.BCLog;
@@ -356,36 +351,6 @@ public class FluidRenderer {
         vertex.positiond(x, y, z);
         texmap.apply(x - xTexDiff, y - yTexDiff, z - zTexDiff);
         vertex.renderAsBlock(pose.pose(), pose.normal(), bb);
-    }
-
-    /** Fills up the given region with the fluids texture, repeated. Ignores the value of {@link FluidStack#amount}. Use
-     * {@link GuiUtil}'s fluid drawing methods in preference to this. */
-    public static void drawFluidForGui(FluidStack fluid, double startX, double startY, double endX, double endY, Pose matrix) {
-    	sprite = getFluidSprite(FluidSpriteType.STILL, fluid.getFluid(), fluid);
-        color = colour(fluid.getFluid(), fluid);
-        drawFluidForGuiInteral(startX, startY, endX, endY, matrix);
-    }
-
-    public static void drawFluidForGui(Fluid fluid, double startX, double startY, double endX, double endY, Pose matrix) {
-    	sprite = getFluidSprite(FluidSpriteType.STILL, fluid, FluidStack.EMPTY);
-        color = colour(fluid, FluidStack.EMPTY);
-        drawFluidForGuiInteral(startX, startY, endX, endY, matrix);
-    }
-
-    /** Native deferred GUI path. The GUI renderer no longer consumes PoseStack vertices,
-     * so tile the atlas sprite through GuiGraphicsExtractor instead of immediate BufferBuilder rendering. */
-    public static void drawFluidForGui(FluidStack fluid, double startX, double startY, double endX, double endY, GuiGraphicsExtractor guiGraphics) {
-        if (fluid == null || fluid.isEmpty()) return;
-        TextureAtlasSprite fluidSprite = getFluidSprite(FluidSpriteType.STILL, fluid.getFluid(), fluid);
-        int tint = colour(fluid.getFluid(), fluid);
-        drawFluidForGuiNative(fluidSprite, tint, startX, startY, endX, endY, guiGraphics);
-    }
-
-    public static void drawFluidForGui(Fluid fluid, double startX, double startY, double endX, double endY, GuiGraphicsExtractor guiGraphics) {
-        if (fluid == null) return;
-        TextureAtlasSprite fluidSprite = getFluidSprite(FluidSpriteType.STILL, fluid, FluidStack.EMPTY);
-        int tint = colour(fluid, FluidStack.EMPTY);
-        drawFluidForGuiNative(fluidSprite, tint, startX, startY, endX, endY, guiGraphics);
     }
 
     private static void drawFluidForGuiNative(TextureAtlasSprite fluidSprite, int tint, double startX, double startY,

@@ -6,6 +6,7 @@ import buildcraft.energy.BCEnergy;
 import buildcraft.factory.BCFactory;
 import buildcraft.builders.BCBuilders;
 import buildcraft.robotics.BCRobotics;
+import buildcraft.silicon.BCSilicon;
 import net.fabricmc.api.ModInitializer;
 import buildcraft.lib.net.MessageManager;
 import buildcraft.lib.net.FabricServerState;
@@ -22,6 +23,7 @@ public final class BuildCraftFabric263 implements ModInitializer {
         BCCore.bootstrap();
         BCEnergy.bootstrap();
         buildcraft.transport.BCTransport.bootstrap();
+        BCSilicon.bootstrap();
         BCFactory.bootstrap();
         BCBuilders.bootstrap();
         BCRobotics.bootstrap();

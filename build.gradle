@@ -193,3 +193,24 @@ def verifyRoboticsIsolation = tasks.register('verifyFabric263RoboticsIsolation')
 }
 tasks.named('jar') { dependsOn verifyRoboticsIsolation }
 tasks.named('check') { dependsOn verifyRoboticsIsolation }
+
+// Silicon stage gate: the Fabric Silicon module must not link against NeoForge APIs.
+def verifySiliconIsolation = tasks.register('verifyFabric263SiliconIsolation') {
+    group = 'verification'
+    description = 'Reject NeoForge references in Fabric Silicon sources'
+    doLast {
+        def javaDir = file('src/main/java/buildcraft/silicon')
+        def offenders = fileTree(javaDir).matching { include '**/*.java' }.files
+            .findAll { file ->
+                def source = file.getText('UTF-8')
+                source.contains('net.neoforged.') || source.contains('net.minecraftforge.')
+            }
+            .collect { javaDir.toPath().relativize(it.toPath()).toString() }.sort()
+        if (!offenders.isEmpty()) {
+            throw new GradleException('Fabric 26.3 Silicon still depends on native Forge/NeoForge APIs:\n'
+                + offenders.take(80).join('\n'))
+        }
+    }
+}
+tasks.named('jar') { dependsOn verifySiliconIsolation }
+tasks.named('check') { dependsOn verifySiliconIsolation }

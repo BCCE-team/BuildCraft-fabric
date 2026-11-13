@@ -138,6 +138,7 @@ public final class BCSiliconModels {
 
     /** Clears baked quads whose UV coordinates belong to the previous block-atlas generation. */
     public static void clearAtlasDependentCaches() {
+        NativePluggableItemModels2612.clearCaches();
         PlugGateBaker.onModelBake();
         PlugBakerLens.onModelBake();
         ModelGateItem.onModelBake();
