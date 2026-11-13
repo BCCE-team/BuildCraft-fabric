@@ -12,9 +12,6 @@ import buildcraft.core.blockEntity.TileEngineCreative;
 import buildcraft.core.blockEntity.TileEngineRedstone_BC8;
 import buildcraft.core.blockEntity.TileMarkerPath;
 import buildcraft.core.blockEntity.TileMarkerVolume;
-import buildcraft.energy.tile.TileEngineFE;
-import buildcraft.energy.tile.TileEngineIron_BC8;
-import buildcraft.energy.tile.TileEngineStone_BC8;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -34,10 +31,7 @@ public class BCCoreBlocks {
     public static final BCRegistryEntry<Block> ENGINE_BC8 = RegistryCompat.registerBlock(BLOCKS, "engine", () -> new BlockEngine_BC8(RegistryCompat.blockProperties(BlockBehaviour.Properties.of()).mapColor(MapColor.METAL)
             .strength(25.0f).explosionResistance(10.0f).dynamicShape().noOcclusion().requiresCorrectToolForDrops())
             .registerEngine(EnumEngineType.WOOD, TileEngineRedstone_BC8::new)
-            .registerEngine(EnumEngineType.CREATIVE, TileEngineCreative::new)
-            .registerEngine(EnumEngineType.STONE, TileEngineStone_BC8::new)
-            .registerEngine(EnumEngineType.IRON, TileEngineIron_BC8::new)
-            .registerEngine(EnumEngineType.FE, TileEngineFE::new));
+            .registerEngine(EnumEngineType.CREATIVE, TileEngineCreative::new));
 
     public static final BCRegistryEntry<BlockSpring> SPRING = RegistryCompat.registerBlock(BLOCKS, "spring", BlockSpring::new);
     public static final BCRegistryEntry<BlockMarkerPath> MARKER_PATH = RegistryCompat.registerBlock(BLOCKS, "marker_path", BlockMarkerPath::new);

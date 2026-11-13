@@ -87,8 +87,25 @@ def verifyLibIsolation = tasks.register('verifyFabric263LibIsolation') {
         }
     }
 }
+// Preserve the same fail-closed native-source boundary for Core.
+def verifyCoreIsolation = tasks.register('verifyFabric263CoreIsolation') {
+    group = 'verification'
+    description = 'Reject NeoForge references in materialized Fabric core source'
+    doLast {
+        def javaDir = file('src/main/java/buildcraft/core')
+        def offenders = fileTree(javaDir).matching { include '**/*.java' }.files
+            .findAll { it.getText('UTF-8').contains('net.neoforged.') }
+            .collect { javaDir.toPath().relativize(it.toPath()).toString() }.sort()
+        if (!offenders.isEmpty()) {
+            throw new GradleException("Fabric 26.3 core still has ${offenders.size()} NeoForge-owned Java files:\n"
+                + offenders.take(80).join('\n'))
+        }
+    }
+}
+tasks.named('jar') { dependsOn verifyCoreIsolation }
 tasks.named('jar') { dependsOn verifyLibIsolation }
 tasks.named('check') { dependsOn verifyLibIsolation }
+tasks.named('check') { dependsOn verifyCoreIsolation }
 tasks.named('test', Test) { useJUnitPlatform() }
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'

@@ -1,6 +1,7 @@
 package buildcraft.fabric;
 
 import buildcraft.lib.BCLib;
+import buildcraft.core.BCCore;
 import net.fabricmc.api.ModInitializer;
 import buildcraft.lib.net.MessageManager;
 import buildcraft.lib.net.FabricServerState;
@@ -15,6 +16,10 @@ public final class BuildCraftFabric263 implements ModInitializer {
     public void onInitialize() {
         MessageManager.registerPayloads();
         BCLib.bootstrap();
+        BCCore.bootstrap();
+        // Module-dependent registries and marker caches must be finalized only
+        // after the last installed BCCE gameplay module has bootstrapped.
+        BCLib.finishModuleRegistration();
         ServerLifecycleEvents.SERVER_STARTED.register(FabricServerState::started);
         ServerLifecycleEvents.SERVER_STOPPED.register(FabricServerState::stopped);
     }
