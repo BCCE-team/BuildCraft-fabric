@@ -154,3 +154,21 @@ def verifyTransportIsolation = tasks.register('verifyFabric263TransportIsolation
 }
 tasks.named('jar') { dependsOn verifyTransportIsolation }
 tasks.named('check') { dependsOn verifyTransportIsolation }
+
+// Factory stage gate: fabric must own every Factory platform integration.
+def verifyFactoryIsolation = tasks.register('verifyFabric263FactoryIsolation') {
+    group = 'verification'
+    description = 'Reject NeoForge references in Fabric Factory sources'
+    doLast {
+        def javaDir = file('src/main/java/buildcraft/factory')
+        def offenders = fileTree(javaDir).matching { include '**/*.java' }.files
+            .findAll { it.getText('UTF-8').contains('net.neoforged.') }
+            .collect { javaDir.toPath().relativize(it.toPath()).toString() }.sort()
+        if (!offenders.isEmpty()) {
+            throw new GradleException("Fabric 26.3 Factory still contains ${offenders.size()} NeoForge Java files:\n"
+                + offenders.take(80).join('\n'))
+        }
+    }
+}
+tasks.named('jar') { dependsOn verifyFactoryIsolation }
+tasks.named('check') { dependsOn verifyFactoryIsolation }

@@ -127,7 +127,7 @@ public class TileMiningWell extends TileMiner implements MachineRuntimeView {
         }
 
         Fluid fluid = BlockUtil.getFluidWithFlowing(level, currentPos);
-        return fluid == Fluids.EMPTY || fluid.getFluidType().getViscosity() <= 1000;
+        return fluid == Fluids.EMPTY || buildcraft.lib.fluid.FabricFluidProperties.viscosity(fluid) <= 1000;
     }
 
     private static boolean isStandaloneWaterBlock(BlockState state) {

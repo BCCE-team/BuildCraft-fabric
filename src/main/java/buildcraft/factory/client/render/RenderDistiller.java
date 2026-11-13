@@ -121,7 +121,7 @@ public class RenderDistiller implements BCGeometryRenderer<TileDistiller_BC8> {
         if (fluid == null || fluid.amount <= 0) {
             return;
         }
-        int blockLight = fluid.fluid.getFluid().getFluidType().getLightLevel(fluid.fluid) & 0xF;
+        int blockLight = buildcraft.lib.fluid.FabricFluidProperties.lightLevel(fluid.fluid.getFluid()) & 0xF;
         combinedLight = (combinedLight & ~0xF0) | (Math.max((combinedLight >>> 4) & 15, blockLight) << 4);
         FluidRenderer.vertex.lighti(combinedLight);
         FluidRenderer.renderFluid(FluidSpriteType.STILL, fluid.fluid, fluid.amount, tank.getCapacity(), size.min,

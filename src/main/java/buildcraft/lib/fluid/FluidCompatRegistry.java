@@ -68,7 +68,7 @@ public final class FluidCompatRegistry {
         if (first == second) {
             return true;
         }
-        if (first != null && second != null && first.getFluidType() == second.getFluidType()) {
+        if (first != null && second != null && first.isSame(second)) {
             return true;
         }
         if (first == null || second == null || first == Fluids.EMPTY || second == Fluids.EMPTY) {

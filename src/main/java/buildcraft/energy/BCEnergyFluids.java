@@ -7,6 +7,7 @@ package buildcraft.energy;
 import buildcraft.energy.fluid.BCLiquidBlock;
 import buildcraft.lib.fluid.BCFluid;
 import buildcraft.lib.fluid.FluidCompatRegistry;
+import buildcraft.lib.fluid.FabricFluidProperties;
 import buildcraft.lib.compat.RegistryCompat;
 import buildcraft.lib.platform.registry.BCDeferredRegister;
 import buildcraft.lib.platform.registry.BCRegistryEntry;
@@ -112,7 +113,11 @@ public final class BCEnergyFluids {
             String commonName = heat == 0 ? name : HEAT_NAMES[heat] + "_" + name;
             FluidCompatRegistry.registerCanonical(TagKey.create(Registries.FLUID,
                 Identifier.fromNamespaceAndPath("c", commonName)), OIL_SOURCE.get(i).get());
+            // Pump and Mining Well retain NeoForge's viscosity threshold/heat behaviour.
+            FabricFluidProperties.registerViscosity(OIL_SOURCE.get(i).get(),
+                DATA[i / HEAT_NAMES.length][1] * (4 - heat) / 4);
         }
+        FabricFluidProperties.registerViscosity(SPOUT_OIL_SOURCE.get(), DATA[0][1]);
         FluidCompatRegistry.registerCanonical(TagKey.create(Registries.FLUID,
             Identifier.fromNamespaceAndPath("c", "oil")), OIL_SOURCE.get(0).get(),
             Identifier.fromNamespaceAndPath(BCEnergy.MODID, "spout_oil"),
