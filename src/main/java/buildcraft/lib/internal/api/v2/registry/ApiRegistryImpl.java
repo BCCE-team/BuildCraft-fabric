@@ -45,9 +45,20 @@ public final class ApiRegistryImpl<T> implements ApiRegistry<T> {
         Objects.requireNonNull(context, "context");
         checkNamespace(alias, Objects.requireNonNull(context.owner(), "context.owner()"));
         if (alias.equals(canonicalId)) throw new IllegalArgumentException("alias must differ from canonicalId");
-        if (entries.containsKey(alias) || aliases.putIfAbsent(alias, canonicalId) != null) {
+        if (entries.containsKey(alias) || aliases.containsKey(alias)) {
             throw new IllegalStateException("Duplicate registry id or alias: " + alias);
         }
+        // Validate before mutating: a rejected cycle must not poison the registry.
+        Identifier current = canonicalId;
+        Set<Identifier> visited = new LinkedHashSet<>();
+        while (aliases.containsKey(current)) {
+            if (!visited.add(current) || current.equals(alias)) {
+                throw new IllegalArgumentException("Registry alias cycle involving " + alias);
+            }
+            current = aliases.get(current);
+        }
+        if (current.equals(alias)) throw new IllegalArgumentException("Registry alias cycle involving " + alias);
+        aliases.put(alias, canonicalId);
     }
 
     public T get(Identifier id) {
@@ -86,7 +97,7 @@ public final class ApiRegistryImpl<T> implements ApiRegistry<T> {
 
     public boolean frozen() { return frozen; }
 
-    public void freeze() {
+    public void validateFreeze() {
         if (frozen) return;
         for (Identifier alias : aliases.keySet()) {
             Identifier canonical = canonicalId(alias);
@@ -94,6 +105,11 @@ public final class ApiRegistryImpl<T> implements ApiRegistry<T> {
                 throw new IllegalStateException("Registry alias " + alias + " targets missing id " + canonical);
             }
         }
+    }
+
+    public void freeze() {
+        if (frozen) return;
+        validateFreeze();
         frozen = true;
     }
 

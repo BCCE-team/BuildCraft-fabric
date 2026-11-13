@@ -40,6 +40,7 @@ public final class BCLib {
 
     private static boolean bootstrapped;
     private static boolean finished;
+    private static boolean apiFinished;
 
     private BCLib() {}
 
@@ -110,7 +111,19 @@ public final class BCLib {
         MarkerCache.postInit();
         BuildCraftObjectCaches.fmlPostInit();
         MessageManager.fmlPostInit();
+    }
+
+    /**
+     * Seal API registries only after Fabric has run every addon ModInitializer.
+     * The common entrypoint finalizes gameplay modules earlier, but Fabric loads
+     * dependant mod entrypoints after ours, so freezing inside onInitialize()
+     * would make ordinary addon registration impossible.
+     */
+    public static synchronized void finishApiRegistration() {
+        if (!finished) throw new IllegalStateException("Gameplay module registration is not complete");
+        if (apiFinished) return;
         BCLibRegistries.fmlPostInit();
+        apiFinished = true;
     }
 
     public static Error throwBadClass(Error e, Class<?> cls) throws Error {

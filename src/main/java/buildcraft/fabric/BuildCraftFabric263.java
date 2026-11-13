@@ -30,6 +30,9 @@ public final class BuildCraftFabric263 implements ModInitializer {
         // Module-dependent registries and marker caches must be finalized only
         // after the last installed BCCE gameplay module has bootstrapped.
         BCLib.finishModuleRegistration();
+        // Fabric calls addons' ModInitializer instances after their BCCE dependency.
+        // Seal extension registries at server startup, not in our initializer.
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> BCLib.finishApiRegistration());
         ServerLifecycleEvents.SERVER_STARTED.register(FabricServerState::started);
         ServerLifecycleEvents.SERVER_STOPPED.register(FabricServerState::stopped);
     }
