@@ -135,10 +135,10 @@ public class TankContainerData implements ContainerData{
 	            if (fluidStack != FluidStack.EMPTY && amount > 0) {
 	                add(FluidCompat.getDisplayName(fluidStack));
 	            }
-	            add(LocaleUtil.localizeFluidStaticAmount(amount, getPacked(data, point + 8)).setStyle(Style.EMPTY.withColor(BCTextFormat.GRAY)));
+	            add(LocaleUtil.localizeFluidStaticAmount(amount, getPacked(data, point + 8)).setStyle(BCTextFormat.GRAY.apply(Style.EMPTY)));
 	            FluidStack serverFluid = getFluidStack(data, point);
 	            if (serverFluid != FluidStack.EMPTY && serverFluid.getAmount() > 0) {
-	                add(Component.translatable("tooltip.buildcraftlib.fluid.server_side_on_client").setStyle(Style.EMPTY.withColor(BCTextFormat.RED)));
+	                add(Component.translatable("tooltip.buildcraftlib.fluid.server_side_on_client").setStyle(BCTextFormat.RED.apply(Style.EMPTY)));
 	                add(FluidCompat.getDisplayName(serverFluid));
 	                add(LocaleUtil.localizeFluidStaticAmount(serverFluid.getAmount(), getPacked(data, point + 8)));
 	            }

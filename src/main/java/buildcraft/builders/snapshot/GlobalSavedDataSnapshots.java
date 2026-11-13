@@ -130,7 +130,7 @@ public final class GlobalSavedDataSnapshots {
      * integrated servers: creating a blueprint must not make it globally available in the client's library.
      */
     public static void cacheServerSnapshot(Level level, Snapshot snapshot) {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             throw new IllegalArgumentException("Server snapshot caching requires a server level");
         }
         getServerStore(level).writeServerSnapshot(snapshot);
@@ -160,7 +160,7 @@ public final class GlobalSavedDataSnapshots {
         if (level == null || key == null) {
             return null;
         }
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return getClientSnapshot(key);
         }
         return getServerStore(level).getSnapshot(key);
@@ -169,7 +169,7 @@ public final class GlobalSavedDataSnapshots {
 
     private static File getServerSnapshotDirectory(@Nullable Level level) {
         File gameDirectory = FabricLoader.getInstance().getGameDir().toAbsolutePath().toFile();
-        if (level != null && !level.isClientSide && level.getServer() != null) {
+        if (level != null && !level.isClientSide() && level.getServer() != null) {
             try {
                 Path worldRoot = level.getServer().getWorldPath(LevelResource.ROOT);
                 File directory = worldRoot.resolve(SERVER_WORLD_DIRECTORY).toFile();

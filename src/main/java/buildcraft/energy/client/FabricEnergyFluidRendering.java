@@ -4,7 +4,7 @@ import buildcraft.energy.BCEnergyFluids;
 import buildcraft.lib.fluid.BCFluid;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderingRegistry;
 import net.minecraft.client.renderer.block.FluidModel;
-import net.minecraft.client.resources.model.Material;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.resources.Identifier;
 
 /** Uses 26.3's native FluidModel.Unbaked instead of NeoForge FluidType sprites. */

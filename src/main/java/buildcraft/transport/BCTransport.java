@@ -35,10 +35,10 @@ public final class BCTransport {
     private static final BCDeferredRegister<CreativeModeTab> CREATIVE_TABS =
         BCDeferredRegister.create("minecraft:creative_mode_tab", "buildcraft");
     public static final BCRegistryEntry<CreativeModeTab> PIPES_TAB = CREATIVE_TABS.register("pipes", () ->
-        CreativeModeTab.builder().title(Component.translatable("itemGroup.buildcraft.pipes"))
+        net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab.builder().title(Component.translatable("itemGroup.buildcraft.pipes"))
             .icon(tabPipes::makeIcon).displayItems((p, o) -> tabPipes.accept(List.of(), o::accept)).build());
     public static final BCRegistryEntry<CreativeModeTab> PLUGS_TAB = CREATIVE_TABS.register("plugs", () ->
-        CreativeModeTab.builder().title(Component.translatable("itemGroup.buildcraft.plugs"))
+        net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab.builder().title(Component.translatable("itemGroup.buildcraft.plugs"))
             .icon(tabPlugs::makeIcon).displayItems((p, o) -> tabPlugs.accept(List.of(), o::accept)).build());
     private static boolean bootstrapped;
     private BCTransport() { }

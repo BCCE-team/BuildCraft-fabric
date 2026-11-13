@@ -6,6 +6,8 @@
 
 package buildcraft.silicon.tile;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.lib.compat.minecraft.persistence.BCValueOutput;
 import buildcraft.lib.compat.minecraft.persistence.BCValueInput;
 import java.io.IOException;
@@ -464,7 +466,7 @@ public class TileAssemblyTable extends TileLaserTableBase implements MenuProvide
 
     public InteractionResult onActivated(Player player, InteractionHand hand, BlockHitResult hit) {
         if(player instanceof ServerPlayer splayer&&!player.level().isClientSide()) {
-            splayer.openMenu(this, buffer -> buffer.writeBlockPos(worldPosition));
+            FabricMenuOpening.open(splayer, this, buffer -> buffer.writeBlockPos(worldPosition));
         }
         return super.onActivated(player, hand, hit);
     }

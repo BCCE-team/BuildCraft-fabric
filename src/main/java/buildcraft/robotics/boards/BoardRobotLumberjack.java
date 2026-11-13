@@ -1,5 +1,7 @@
 package buildcraft.robotics.boards;
 
+import buildcraft.lib.compat.NbtCompat;
+
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,7 +17,6 @@ import buildcraft.robotics.ai.AIRobotSearchAndGotoBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -48,7 +49,7 @@ public class BoardRobotLumberjack extends BoardRobotGenericBreakBlock {
 
     @Override
     public boolean isExpectedTool(ItemStack stack) {
-        return !stack.isEmpty() && (stack.getItem() instanceof AxeItem || ItemCompat.isAxe(stack));
+        return !stack.isEmpty() && ItemCompat.isAxe(stack);
     }
 
     @Override
@@ -197,9 +198,9 @@ public class BoardRobotLumberjack extends BoardRobotGenericBreakBlock {
         clearCurrentTree();
 
         if (nbt.contains("treeOrigin")) {
-            treeOrigin = BlockPos.of(nbt.getLong("treeOrigin"));
+            treeOrigin = BlockPos.of(NbtCompat.getLong(nbt, "treeOrigin"));
         }
-        for (long packedPos : nbt.getLongArray("currentTree")) {
+        for (long packedPos : NbtCompat.getLongArray(nbt, "currentTree")) {
             currentTree.add(BlockPos.of(packedPos));
         }
 

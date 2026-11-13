@@ -1,5 +1,7 @@
 package buildcraft.builders.platform;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import java.util.UUID;
 
 import buildcraft.builders.menu.ContainerFillerPlanner;
@@ -17,7 +19,7 @@ public final class PlannerMenuOpening {
             (window, inventory, viewer) -> new ContainerFillerPlanner(window, inventory, id, slot),
             Component.translatable("item.buildcraftbuilders.filler_planner")
         );
-        player.openMenu(provider, buffer -> {
+        FabricMenuOpening.open(player, provider, buffer -> {
             buffer.writeUUID(id);
             buffer.writeEnum(slot);
         });

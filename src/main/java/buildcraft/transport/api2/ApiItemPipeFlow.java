@@ -16,9 +16,7 @@ import java.util.Optional;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
-/*?
 import buildcraft.transport.internal.pipe.FluidAction;
-?*/
 
 /** Internal IFlowItems compatibility adapter for an addon-defined ItemPipePort.
  * Its state and transport algorithm are owned by the registered PipeFlowComponent.

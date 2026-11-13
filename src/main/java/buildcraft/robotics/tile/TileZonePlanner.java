@@ -3,6 +3,8 @@
  */
 package buildcraft.robotics.tile;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.lib.compat.minecraft.persistence.BCValueOutput;
 import buildcraft.lib.compat.minecraft.persistence.BCValueInput;
 import net.minecraft.core.HolderLookup;
@@ -371,7 +373,7 @@ public class TileZonePlanner extends TileBC_Neptune implements IDebuggable, Menu
 
     public InteractionResult onActivated(Player player, InteractionHand hand, BlockHitResult hit) {
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(this, buffer -> buffer.writeBlockPos(worldPosition));
+            FabricMenuOpening.open(serverPlayer, this, buffer -> buffer.writeBlockPos(worldPosition));
         }
         return InteractionResult.SUCCESS;
     }

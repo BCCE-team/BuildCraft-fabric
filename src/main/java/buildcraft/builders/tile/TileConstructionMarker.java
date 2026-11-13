@@ -123,7 +123,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
     }
 
     public ItemStack getBlueprintStack() {
-        if (level != null && level.isClientSide) {
+        if (level != null && level.isClientSide()) {
             return clientBlueprint;
         }
         return invBlueprint.getStackInSlot(0);
@@ -142,7 +142,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
     }
 
     public boolean ejectBlueprint(Player player) {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return false;
         }
         ItemStack extracted = invBlueprint.extractItem(0, 1, false);
@@ -164,7 +164,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
             }
         }
         updateSnapshot(true);
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             sendNetworkUpdate(NET_RENDER_DATA);
         }
     }
@@ -176,7 +176,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
         if (rotated != null && rotated.getAxis().isHorizontal()) {
             direction = rotated;
             updateSnapshot(true);
-            if (level != null && !level.isClientSide) {
+            if (level != null && !level.isClientSide()) {
                 sendNetworkUpdate(NET_RENDER_DATA);
             }
         }
@@ -184,7 +184,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
 
     @Override
     protected void onSlotChange(IItemHandlerModifiable handler, int slot, @Nonnull ItemStack before, @Nonnull ItemStack after) {
-        if (level != null && !level.isClientSide && handler == invBlueprint) {
+        if (level != null && !level.isClientSide() && handler == invBlueprint) {
             reloadSnapshotFromItem(after, nextBlueprintInserter, true);
             sendNetworkUpdate(NET_RENDER_DATA);
         }
@@ -237,7 +237,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
             } else {
                 rotation = Rotation.NONE;
             }
-            BlockPos basePos = worldPosition.offset(direction.getNormal());
+            BlockPos basePos = worldPosition.offset(direction.getUnitVec3i());
             basePos = adjustBasePosIfOverlappingMarker(blueprint, basePos, rotation);
             blueprintBuildingInfo = blueprint.new BuildingInfo(basePos, rotation, level);
             currentBox = Optional.ofNullable(blueprintBuildingInfo.box).orElseGet(Box::new);
@@ -259,7 +259,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
         int maxShift = Math.max(1, Math.max(blueprint.size.getX(), blueprint.size.getZ())) + 1;
         BlockPos shiftedBasePos = basePos;
         for (int i = 0; i < maxShift; i++) {
-            shiftedBasePos = shiftedBasePos.offset(direction.getNormal());
+            shiftedBasePos = shiftedBasePos.offset(direction.getUnitVec3i());
             buildingInfo = blueprint.new BuildingInfo(shiftedBasePos, appliedRotation, level);
             if (!buildingInfo.box.contains(worldPosition)) {
                 return shiftedBasePos;
@@ -273,7 +273,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
         if (level == null) {
             return;
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             // The blueprint library may become available after the marker loads. A failed lookup
             // is not a permanent failure: retry occasionally while the blueprint slot is populated.
             if (blueprintBuildingInfo == null && level.getGameTime() % 40L == 0L
@@ -291,7 +291,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
     @Override
     public void clearRemoved() {
         super.clearRemoved();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             LOADED_MARKERS.add(this);
         }
         blueprintBuilder.validate();
@@ -299,7 +299,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
 
     @Override
     public void setRemoved() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             LOADED_MARKERS.remove(this);
         }
         super.setRemoved();
@@ -309,7 +309,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
     @Override
     public void onLoad() {
         super.onLoad();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             LOADED_MARKERS.add(this);
             reloadSnapshotFromItem(invBlueprint.getStackInSlot(0), null, true);
             sendNetworkUpdate(NET_RENDER_DATA);
@@ -318,7 +318,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
 
     @Override
     public void onChunkUnloaded() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             LOADED_MARKERS.remove(this);
         }
         super.onChunkUnloaded();
@@ -398,7 +398,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
 
     public boolean canRobotsBuild() {
         return level != null
-            && !level.isClientSide
+            && !level.isClientSide()
             && !isRemoved()
             && blueprintBuildingInfo != null
             && !invBlueprint.getStackInSlot(0).isEmpty();
@@ -462,7 +462,7 @@ public class TileConstructionMarker extends TileBC_Neptune implements IDebuggabl
 
     @Override
     public SnapshotBuilder<?> getBuilder() {
-        if (blueprintBuildingInfo != null || (level != null && level.isClientSide && !clientBlueprint.isEmpty())) {
+        if (blueprintBuildingInfo != null || (level != null && level.isClientSide() && !clientBlueprint.isEmpty())) {
             return blueprintBuilder;
         }
         return null;

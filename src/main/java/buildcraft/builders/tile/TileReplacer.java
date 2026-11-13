@@ -90,7 +90,7 @@ public class TileReplacer extends TileBC_Neptune implements MenuProvider {
      * The input schematics remain reusable and an empty target means air.
      */
     public void doReplace(String requestedName) {
-        if (level == null || level.isClientSide) return;
+        if (level == null || level.isClientSide()) return;
 
         ItemStack blueprintStack = invSnapshot.getStackInSlot(0);
         ItemStack findStack = invSchematicFrom.getStackInSlot(0);
@@ -131,12 +131,12 @@ public class TileReplacer extends TileBC_Neptune implements MenuProvider {
     }
 
     private UUID getOwnerId(Header fallbackHeader) {
-        return getOwner() != null && getOwner().getId() != null ? getOwner().getId() : fallbackHeader.owner;
+        return getOwner() != null && getOwner().id() != null ? getOwner().id() : fallbackHeader.owner;
     }
 
     private String getOwnerName(Header fallbackHeader) {
-        return getOwner() != null && getOwner().getName() != null && !getOwner().getName().isBlank()
-            ? getOwner().getName() : fallbackHeader.ownerName;
+        return getOwner() != null && getOwner().name() != null && !getOwner().name().isBlank()
+            ? getOwner().name() : fallbackHeader.ownerName;
     }
 
     @Override

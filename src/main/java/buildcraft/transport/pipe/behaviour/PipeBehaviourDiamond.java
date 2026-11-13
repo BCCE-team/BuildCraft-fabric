@@ -6,6 +6,8 @@
 
 package buildcraft.transport.pipe.behaviour;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import java.util.List;
 
 import buildcraft.lib.internal.module.BCModules;
@@ -100,7 +102,7 @@ public abstract class PipeBehaviourDiamond extends PipeBehaviour implements Menu
     public boolean onPipeActivate(Player player, BlockHitResult trace, Level level,
         EnumPipePart part) {
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(this, buffer -> buffer.writeBlockPos(pipe.getHolder().getPipePos()));
+            FabricMenuOpening.open(serverPlayer, this, buffer -> buffer.writeBlockPos(pipe.getHolder().getPipePos()));
         }
         return true;
     }

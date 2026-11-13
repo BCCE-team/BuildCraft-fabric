@@ -33,7 +33,7 @@ public final class BCRobotics {
     private static final BCDeferredRegister<CreativeModeTab> CREATIVE_TABS =
         BCDeferredRegister.create("minecraft:creative_mode_tab", "buildcraft");
     public static final BCRegistryEntry<CreativeModeTab> ROBOTICS_TAB = CREATIVE_TABS.register("boards", () ->
-        CreativeModeTab.builder()
+        net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab.builder()
             .title(Component.translatable("itemGroup.buildcraft.boards"))
             .icon(TAB_ROBOTICS::makeIcon)
             .displayItems((parameters, output) -> TAB_ROBOTICS.accept(List.of(), output::accept))

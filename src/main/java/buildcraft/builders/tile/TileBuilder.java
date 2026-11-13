@@ -163,7 +163,7 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
 			canRotate = (p&0b10) == 0b10;
 			canExcavate = (p&0b100) == 0b100;
 
-            if (level != null && !level.isClientSide) {
+            if (level != null && !level.isClientSide()) {
                 if (oldNeedMaterial != needMaterial) {
                     Optional.ofNullable(getBuilder()).ifPresent(SnapshotBuilder::resourcesChanged);
                 }
@@ -231,7 +231,7 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
     @Override
     protected void onSlotChange(IItemHandlerModifiable handler, int slot, @Nonnull ItemStack before,
         @Nonnull ItemStack after) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             if (handler == invSnapshot) {
                 needsRestartAfterLoad = false;
                 reloadSnapshotFromItem(after, true, true);
@@ -273,7 +273,7 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
     }
 
     public void applySnapshotSettingsFromInsertedItem(ItemStack stack, Player player) {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         Snapshot.Header header = ItemSnapshot.getHeader(stack);
@@ -307,7 +307,7 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
     }
 
     private void restartSnapshotAfterLoad() {
-        if (level == null || level.isClientSide || !needsRestartAfterLoad) {
+        if (level == null || level.isClientSide() || !needsRestartAfterLoad) {
             return;
         }
 
@@ -349,7 +349,7 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
     @Override
     public void clearRemoved() {
         super.clearRemoved();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             LOADED_BUILDERS.add(this);
         }
         templateBuilder.validate();
@@ -358,7 +358,7 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
 
     @Override
     public void setRemoved() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             LOADED_BUILDERS.remove(this);
         }
         super.setRemoved();
@@ -409,7 +409,7 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
         int maxShift = Math.max(1, Math.max(snapshot.size.getX(), snapshot.size.getZ())) + 1;
         BlockPos shiftedBasePos = basePos;
         for (int i = 0; i < maxShift; i++) {
-            shiftedBasePos = shiftedBasePos.offset(buildDirection.getNormal());
+            shiftedBasePos = shiftedBasePos.offset(buildDirection.getUnitVec3i());
             buildingInfo = createBuildingInfo(shiftedBasePos, appliedRotation);
             if (buildingInfo == null || !buildingInfo.box.contains(worldPosition)) {
                 return shiftedBasePos;
@@ -441,7 +441,7 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
                 basePoses.addAll(PositionUtil.getAllOnPath(path.get(i - 1), path.get(i)));
             }
         } else {
-            basePoses.add(worldPosition.offset(level.getBlockState(worldPosition).getValue(BlockBCBase_Neptune.PROP_FACING).getOpposite().getNormal()));
+            basePoses.add(worldPosition.offset(level.getBlockState(worldPosition).getValue(BlockBCBase_Neptune.PROP_FACING).getOpposite().getUnitVec3i()));
         }
     }
 
@@ -453,7 +453,7 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
     public void onPlacedBy(LivingEntity placer, ItemStack stack) {
         super.onPlacedBy(placer, stack);
         Direction facing = level.getBlockState(worldPosition).getValue(BlockBCBase_Neptune.PROP_FACING);
-        BlockEntity inFront = level.getBlockEntity(worldPosition.offset(facing.getOpposite().getNormal()));
+        BlockEntity inFront = level.getBlockEntity(worldPosition.offset(facing.getOpposite().getUnitVec3i()));
         if (inFront instanceof IPathProvider) {
             IPathProvider provider = (IPathProvider) inFront;
             ImmutableList<BlockPos> copiedPath = ImmutableList.copyOf(provider.getPath());
@@ -472,8 +472,8 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
             shouldInit = false;
         }
 
-        level.getProfiler().push("main");
-        if (!level.isClientSide) {
+        net.minecraft.util.profiling.Profiler.get().push("main");
+        if (!level.isClientSide()) {
             restartSnapshotAfterLoad();
         }
 
@@ -481,20 +481,20 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
         if (builder == null) {
             // Idle builders need no per-tick construction work. Only service an overfilled battery and render-state
             // changes; slot/NBT callbacks wake the real builder path immediately when a snapshot appears.
-            if (!level.isClientSide && battery.getStored() > battery.getCapacity() * 2L) {
+            if (!level.isClientSide() && battery.getStored() > battery.getCapacity() * 2L) {
                 battery.tick(getLevel(), getBlockPos());
             }
-            if (!level.isClientSide) {
+            if (!level.isClientSide()) {
                 syncRenderDataIfNeeded();
             }
-            level.getProfiler().pop();
+            net.minecraft.util.profiling.Profiler.get().pop();
             return;
         }
 
-        level.getProfiler().push("power");
+        net.minecraft.util.profiling.Profiler.get().push("power");
         battery.tick(getLevel(), getBlockPos());
-        level.getProfiler().popPush("builder");
-        if (level.isClientSide) {
+        net.minecraft.util.profiling.Profiler.get().popPush("builder");
+        if (level.isClientSide()) {
             // Client-side ticking only interpolates data that the server already sent.
             builder.tick();
         } else {
@@ -516,8 +516,8 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
             }
             syncRenderDataIfNeeded();
         }
-        level.getProfiler().pop();
-        level.getProfiler().pop();
+        net.minecraft.util.profiling.Profiler.get().pop();
+        net.minecraft.util.profiling.Profiler.get().pop();
     }
 
     private void syncRenderDataIfNeeded() {
@@ -572,7 +572,7 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
 
     private void finishCurrentSnapshot() {
         if (basePoses.size() > 1 && getOwner() != null) {
-            AdvancementUtil.unlockAdvancement(getOwner().getId(), ADVANCEMENT);
+            AdvancementUtil.unlockAdvancement(getOwner().id(), ADVANCEMENT);
         }
         ItemStack blueprint = invSnapshot.extractItem(0, 1, false);
         if (!blueprint.isEmpty() && !invResources.insert(blueprint, true ,false).isEmpty()) {
@@ -724,7 +724,7 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
     @Override
 	public void onLoad() {
 		super.onLoad();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             LOADED_BUILDERS.add(this);
             restartSnapshotAfterLoad();
         }
@@ -732,7 +732,7 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
 
     @Override
     public void onChunkUnloaded() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             LOADED_BUILDERS.remove(this);
         }
         super.onChunkUnloaded();
@@ -744,7 +744,7 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
 
     public boolean canRobotsBuild() {
         return level != null
-            && !level.isClientSide
+            && !level.isClientSide()
             && !isRemoved()
             && snapshotType == EnumSnapshotType.BLUEPRINT
             && blueprintBuildingInfo != null

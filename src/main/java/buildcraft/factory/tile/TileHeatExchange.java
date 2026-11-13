@@ -1,5 +1,7 @@
 package buildcraft.factory.tile;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.api.v2.OperationMode;
 import buildcraft.api.v2.permission.WorldOperationKind;
 import buildcraft.lib.misc.AutomationPermissionUtil;
@@ -478,7 +480,7 @@ markCheckNeighbours();
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
             TileHeatExchange controller = findStart();
             if (controller != null && controller.tankData != null && controller.canPlayerEdit(player)) {
-                serverPlayer.openMenu(controller, buffer -> buffer.writeBlockPos(controller.worldPosition));
+                FabricMenuOpening.open(serverPlayer, controller, buffer -> buffer.writeBlockPos(controller.worldPosition));
             }
         }
         return InteractionResult.SUCCESS;

@@ -6,6 +6,8 @@
 
 package buildcraft.transport.pipe.behaviour;
 
+import buildcraft.lib.misc.CapUtil;
+
 import buildcraft.lib.internal.mj.MjCapabilities;
 
 import buildcraft.lib.internal.mj.IMjReceiver;
@@ -45,8 +47,8 @@ public class PipeBehaviourWoodPower extends PipeBehaviour {
         if (pipe.getFlow() instanceof IFlowForgeEnergy feFlow) {
             return feFlow.isExternalEnergyReceiver(face) ? 0 : 1;
         }
-        IMjReceiver recv = tile.getLevel() == null ? null : tile.getLevel().getCapability(
-            MjCapabilities.CAP_RECEIVER, tile.getBlockPos(), face.getOpposite()
+        IMjReceiver recv = tile.getLevel() == null ? null : CapUtil.getCapability(
+            tile.getLevel(), tile.getBlockPos(), MjCapabilities.CAP_RECEIVER, face.getOpposite()
         );
         return recv == null ? 1 : recv.canReceive() ? 0 : 1;
     }

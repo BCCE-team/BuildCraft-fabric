@@ -1,5 +1,7 @@
 package buildcraft.energy.tile;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.lib.compat.minecraft.persistence.BCValueOutput;
 import buildcraft.lib.compat.minecraft.persistence.BCValueInput;
 import buildcraft.api.v2.energy.MjAmount;
@@ -201,7 +203,7 @@ public class TileEngineFE extends TileEngineBase_BC8 implements MenuProvider {
             if (current.getItem() instanceof IItemPipe) return InteractionResult.PASS;
         }
         if (!level.isClientSide() && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(this, buf -> buf.writeBlockPos(worldPosition));
+            FabricMenuOpening.open(serverPlayer, this, buf -> buf.writeBlockPos(worldPosition));
         }
         return InteractionResult.SUCCESS;
     }

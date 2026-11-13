@@ -75,6 +75,12 @@ public final class NbtCompat {
     }
 
 
+    /** Pre-26.x typed-list lookup, rejecting data with a different tag ID. */
+    public static ListTag getList(CompoundTag tag, String key, int itemTagType) {
+        ListTag list = getList(tag, key);
+        return list.isEmpty() || list.get(0).getId() == itemTagType ? list : new ListTag();
+    }
+
     public static ListTag getList(CompoundTag tag, String key) {
         return tag.getList(key).orElseGet(ListTag::new);
     }

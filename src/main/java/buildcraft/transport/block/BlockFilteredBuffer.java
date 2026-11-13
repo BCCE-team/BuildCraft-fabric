@@ -6,6 +6,8 @@
 
 package buildcraft.transport.block;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.lib.block.BlockBCTile_Neptune;
 import buildcraft.lib.tile.TileBC_Neptune;
 import buildcraft.transport.tile.TileFilteredBuffer;
@@ -45,7 +47,7 @@ public class BlockFilteredBuffer extends BlockBCTile_Neptune {
     private static void openMenu(Level world, BlockPos pos, Player player) {
         if (!world.isClientSide() && player instanceof ServerPlayer serverPlayer
                 && world.getBlockEntity(pos) instanceof TileFilteredBuffer tile) {
-            serverPlayer.openMenu(tile, buffer -> buffer.writeBlockPos(pos));
+            FabricMenuOpening.open(serverPlayer, tile, buffer -> buffer.writeBlockPos(pos));
         }
     }
     

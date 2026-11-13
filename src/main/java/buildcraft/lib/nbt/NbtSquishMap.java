@@ -190,7 +190,7 @@ public class NbtSquishMap {
             throw new IndexOutOfBoundsException(index + " was less than 0!");
         }
         if (index < bytes.size()) {
-            return ByteTag.valueOf(NbtCompat.getByte(bytes, index));
+            return ByteTag.valueOf(bytes.getByte(index));
         }
         index -= bytes.size();
 
@@ -200,22 +200,22 @@ public class NbtSquishMap {
         index -= shorts.size();
 
         if (index < ints.size()) {
-            return IntTag.valueOf(NbtCompat.getInt(ints, index));
+            return IntTag.valueOf(ints.getInt(index));
         }
         index -= ints.size();
 
         if (index < longs.size()) {
-            return LongTag.valueOf(NbtCompat.getLong(longs, index));
+            return LongTag.valueOf(longs.getLong(index));
         }
         index -= longs.size();
 
         if (index < floats.size()) {
-            return FloatTag.valueOf(NbtCompat.getFloat(floats, index));
+            return FloatTag.valueOf(floats.getFloat(index));
         }
         index -= floats.size();
 
         if (index < doubles.size()) {
-            return DoubleTag.valueOf(NbtCompat.getDouble(doubles, index));
+            return DoubleTag.valueOf(doubles.getDouble(index));
         }
         index -= doubles.size();
 

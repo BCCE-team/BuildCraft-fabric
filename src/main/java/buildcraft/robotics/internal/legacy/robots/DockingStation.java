@@ -6,6 +6,8 @@
  */
 package buildcraft.robotics.internal.legacy.robots;
 
+import buildcraft.lib.compat.NbtCompat;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.core.Direction;
@@ -212,13 +214,13 @@ public abstract class DockingStation {
     }
 
     public void readFromNBT(CompoundTag nbt) {
-        index = new BlockIndex(nbt.getCompound("index"));
-        byte sideId = nbt.getByte("side");
+        index = new BlockIndex(NbtCompat.getCompound(nbt, "index"));
+        byte sideId = NbtCompat.getByte(nbt, "side");
         side = sideId >= 0 && sideId < Direction.values().length ? Direction.values()[sideId] : null;
-        linkIsMain = nbt.getBoolean("isMain");
-        robotTakingId = nbt.getLong("robotId");
+        linkIsMain = NbtCompat.getBoolean(nbt, "isMain");
+        robotTakingId = NbtCompat.getLong(nbt, "robotId");
         manuallyReleasedRobotId = nbt.contains("manuallyReleasedRobotId")
-                ? nbt.getLong("manuallyReleasedRobotId")
+                ? NbtCompat.getLong(nbt, "manuallyReleasedRobotId")
                 : EntityRobotBase.NULL_ROBOT_ID;
     }
 

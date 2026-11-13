@@ -4,6 +4,8 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.builders.block;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.builders.tile.TileElectronicLibrary;
 import buildcraft.lib.block.BlockBCTile_Neptune;
 import buildcraft.lib.block.IBlockWithFacing;
@@ -41,7 +43,7 @@ public class BlockElectronicLibrary extends BlockBCTile_Neptune implements IBloc
     private static void openMenu(Level world, BlockPos pos, Player player) {
         if (!world.isClientSide() && player instanceof ServerPlayer serverPlayer
                 && world.getBlockEntity(pos) instanceof TileElectronicLibrary tile) {
-            serverPlayer.openMenu(tile, buffer -> buffer.writeBlockPos(pos));
+            FabricMenuOpening.open(serverPlayer, tile, buffer -> buffer.writeBlockPos(pos));
         }
     }
 

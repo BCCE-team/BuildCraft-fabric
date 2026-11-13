@@ -222,7 +222,7 @@ public final class GuiGuide extends Screen {
 
     public static void open(ItemStack guideStack, InteractionHand hand) {
         try {
-            Minecraft.getInstance().setScreen(new GuiGuide(guideStack, hand));
+            Minecraft.getInstance().gui.setScreen(new GuiGuide(guideStack, hand));
         } catch (RuntimeException | LinkageError failure) {
             GuideFaultIsolation.warn("guide open", "main", failure);
         }
@@ -553,7 +553,7 @@ public final class GuiGuide extends Screen {
             searchBox.setVisible(visible);
             if (!visible && searchBox.isFocused()) {
                 // EditBox#setFocused(boolean) is protected in 1.19.2. Clicking outside the widget clears focus.
-                RenderCompat.mouseClicked(searchBox, new MouseButtonEvent(-1, -1, new MouseButtonInfo(0, 0)), false);
+                RenderCompat.mouseClicked(searchBox, -1, -1, 0, false);
             }
         }
     }
@@ -718,7 +718,7 @@ public final class GuiGuide extends Screen {
                     updateSearchVisibility();
                     persistGuideState();
                 }
-                RenderCompat.mouseClicked(searchBox, new MouseButtonEvent(searchX + 1, searchY + 1, new MouseButtonInfo(0, 0)), false);
+                RenderCompat.mouseClicked(searchBox, searchX + 1, searchY + 1, 0, false);
             }));
         }
     }
@@ -1772,7 +1772,7 @@ public final class GuiGuide extends Screen {
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
-            if (searchBox != null && searchBox.visible && RenderCompat.mouseClicked(searchBox, new MouseButtonEvent(mouseX, mouseY, new MouseButtonInfo(button, 0)), false)) {
+            if (searchBox != null && searchBox.visible && RenderCompat.mouseClicked(searchBox, mouseX, mouseY, button, false)) {
                 return true;
             }
             for (int index = clickRegions.size() - 1; index >= 0; index--) {
@@ -1805,14 +1805,14 @@ public final class GuiGuide extends Screen {
             onClose();
             return true;
         }
-        if (keyPressed(event.key(), event.scancode(), event.modifiers())) {
+        if (keyPressed(event.key(), event.keycode(), event.modifiers())) {
             return true;
         }
         return super.keyPressed(event);
     }
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (searchBox != null && searchBox.visible && RenderCompat.keyPressed(searchBox, new KeyEvent(keyCode, scanCode, modifiers))) return true;
+        if (searchBox != null && searchBox.visible && RenderCompat.keyPressed(searchBox, keyCode, scanCode, modifiers)) return true;
         if (Minecraft.getInstance().options.keyInventory.matches(new KeyEvent(keyCode, scanCode, modifiers))) {
             onClose();
             return true;

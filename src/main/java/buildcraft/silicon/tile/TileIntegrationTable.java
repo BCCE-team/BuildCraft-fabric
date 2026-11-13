@@ -6,6 +6,8 @@
 
 package buildcraft.silicon.tile;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.lib.compat.minecraft.persistence.BCValueOutput;
 import buildcraft.lib.compat.minecraft.persistence.BCValueInput;
 import net.minecraft.core.HolderLookup;
@@ -251,7 +253,7 @@ public class TileIntegrationTable extends TileLaserTableBase implements MenuProv
 
     public InteractionResult onActivated(Player player, InteractionHand hand, BlockHitResult hit) {
         if(player instanceof ServerPlayer splayer) {
-            splayer.openMenu(this, buffer -> buffer.writeBlockPos(worldPosition));
+            FabricMenuOpening.open(splayer, this, buffer -> buffer.writeBlockPos(worldPosition));
         }
         return super.onActivated(player, hand, hit);
     }

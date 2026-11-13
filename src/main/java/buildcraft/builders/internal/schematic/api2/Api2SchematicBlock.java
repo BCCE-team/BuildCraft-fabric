@@ -76,7 +76,7 @@ public final class Api2SchematicBlock implements ISchematicBlock {
     private SchematicPlacementContext context(Level level, BlockPos pos, @Nullable Player player, OperationMode mode) {
         AutomationActor actor = player == null
             ? AutomationActor.unknown()
-            : AutomationActor.player(player.getUUID(), player.getGameProfile().getName());
+            : AutomationActor.player(player.getUUID(), player.getGameProfile().name());
         return new SchematicPlacementContext(level, pos, actor, mode);
     }
 

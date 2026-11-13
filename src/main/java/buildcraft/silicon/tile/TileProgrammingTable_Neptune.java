@@ -6,6 +6,8 @@
 
 package buildcraft.silicon.tile;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.lib.recipe.RecipeBlacklist;
 import buildcraft.lib.recipe.ProgrammingRecipeAccess;
 import buildcraft.api.v2.recipe.ProgrammingRecipeDefinition;
@@ -242,7 +244,7 @@ public class TileProgrammingTable_Neptune extends TileLaserTableBase implements 
 
     public InteractionResult onActivated(Player player, InteractionHand hand, BlockHitResult hit) {
         if (player instanceof ServerPlayer serverPlayer && !player.level().isClientSide()) {
-            serverPlayer.openMenu(this, buffer -> buffer.writeBlockPos(worldPosition));
+            FabricMenuOpening.open(serverPlayer, this, buffer -> buffer.writeBlockPos(worldPosition));
         }
         return super.onActivated(player, hand, hit);
     }

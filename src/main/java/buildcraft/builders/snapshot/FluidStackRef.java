@@ -6,6 +6,8 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.compat.NbtCompat;
+
 import java.util.Optional;
 
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -28,14 +30,14 @@ public class FluidStackRef {
 
     public FluidStack get(Tag nbt) {
         String id = fluid.get(nbt)
-            .map(StringTag::getAsString)
+            .map(NbtCompat::getString)
             .orElseThrow(() -> new IllegalArgumentException("Missing fluid registry ID for " + fluid));
         Identifier key = parseRegistryId("fluid", id);
         Fluid value = BuiltInRegistries.FLUID.getOptional(key)
             .orElseThrow(() -> new IllegalArgumentException("Unknown fluid registry ID '" + key + "'"));
         int resolvedAmount = Optional.ofNullable(amount)
             .flatMap(ref -> ref.get(nbt))
-            .map(IntTag::getAsInt)
+            .map(NbtCompat::getInt)
             .orElse(1000);
         if (resolvedAmount < 0) {
             throw new IllegalArgumentException(

@@ -4,6 +4,8 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.factory.block;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.factory.tile.TileAutoWorkbenchItems;
 import buildcraft.lib.block.BlockBCTile_Neptune;
 import buildcraft.lib.tile.TileBC_Neptune;
@@ -43,7 +45,7 @@ public class BlockAutoWorkbenchItems extends BlockBCTile_Neptune {
     private static void openMenu(Level world, BlockPos pos, Player player) {
         if (!world.isClientSide() && player instanceof ServerPlayer serverPlayer
                 && world.getBlockEntity(pos) instanceof TileAutoWorkbenchItems tile) {
-            serverPlayer.openMenu(tile, buffer -> {
+            FabricMenuOpening.open(serverPlayer, tile, buffer -> {
                 buffer.writeInt(tile.getWorkbenchCrafting().getSlotSize());
                 buffer.writeBlockPos(pos);
             });

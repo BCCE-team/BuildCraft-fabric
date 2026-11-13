@@ -6,6 +6,8 @@
 
 package buildcraft.silicon.plug;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 
 
 import java.io.IOException;
@@ -250,7 +252,7 @@ public class PluggableGate extends PipePluggable implements MenuProvider{
             }
 
             BlockPos pos = holder.getPipePos();
-            splayer.openMenu(this, buf -> {
+            FabricMenuOpening.open(splayer, this, buf -> {
                 buf.writeBlockPos(pos);
                 buf.writeEnum(side);
             });

@@ -6,6 +6,10 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.compat.NbtCompat;
+
+import buildcraft.builders.tile.IRobotBuildActor;
+
 import buildcraft.api.v2.OperationMode;
 import buildcraft.api.v2.energy.MjAmount;
 import buildcraft.api.v2.permission.WorldOperationKind;
@@ -245,7 +249,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
             stack = FluidUtilBC.getFragileFluid(fluidStack);
         }
         CompoundTag itemData = ItemStackUtil.getCustomData(stack);
-        itemData.put(FLUID_STACK_KEY, fluidStack.saveOptional(ItemStackUtil.requireActiveRegistryProvider()));
+        itemData.put(FLUID_STACK_KEY, FluidStackUtil.saveOptional(fluidStack, ItemStackUtil.requireActiveRegistryProvider()));
         ItemStackUtil.setCustomData(stack, itemData);
         return stack;
     }
@@ -258,7 +262,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
     private void refundReservedItem(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return;
         ItemStack remainder = tile.getInvResources().insert(stack.copy(), false, false);
-        if (!remainder.isEmpty() && !tile.getWorldBC().isClientSide) {
+        if (!remainder.isEmpty() && !tile.getWorldBC().isClientSide()) {
             InventoryUtil.addToBestAcceptor(tile.getWorldBC(), tile.getBuilderPos(), null, remainder);
         }
     }
@@ -645,8 +649,8 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
                     .map(tag -> ItemStackUtil.parseOptional(registries, tag))
                     .collect(Collectors.toList())
             );
-            this.energyCost = nbt.getInt("energyCost");
-            this.breakTask = nbt.getBoolean("breakTask");
+            this.energyCost = NbtCompat.getInt(nbt, "energyCost");
+            this.breakTask = NbtCompat.getBoolean(nbt, "breakTask");
         }
 
         public BlockPos pos() {
@@ -671,7 +675,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
 
         public CompoundTag writeToNBT(HolderLookup.Provider registries) {
             CompoundTag nbt = new CompoundTag();
-            nbt.put("pos", NbtUtils.writeBlockPos(pos));
+            nbt.put("pos", NbtCompat.writeBlockPos(pos));
             nbt.put("requirements", NBTUtilBC.writeObjectList(
                 requirements.stream().map(stack -> ItemStackUtil.saveOptional(stack, registries))
             ));
@@ -816,10 +820,10 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
 
     private static CompoundTag getStoredFluid(ItemStack stack) {
         CompoundTag itemData = ItemStackUtil.getCustomDataOrNull(stack);
-        if (itemData == null || !itemData.contains(FLUID_STACK_KEY, Tag.TAG_COMPOUND)) {
+        if (itemData == null || !NbtCompat.contains(itemData, FLUID_STACK_KEY, Tag.TAG_COMPOUND)) {
             return null;
         }
-        return itemData.getCompound(FLUID_STACK_KEY);
+        return NbtCompat.getCompound(itemData, FLUID_STACK_KEY);
     }
 
     @Override
@@ -1032,20 +1036,20 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
 	public boolean tick() {
     	Level level = tile.getWorldBC();
     	
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return super.tick();
         }
         if (!flushPendingFluidRefunds()) {
             return false;
         }
-        level.getProfiler().push("entitiesWithinBox");
+        net.minecraft.util.profiling.Profiler.get().push("entitiesWithinBox");
         List<Entity> entitiesWithinBox = level.getEntitiesOfClass(
             Entity.class,
             getBuildingInfo().box.getBoundingBox(),
             Objects::nonNull
         );
-        level.getProfiler().pop();
-        level.getProfiler().push("toSpawn");
+        net.minecraft.util.profiling.Profiler.get().pop();
+        net.minecraft.util.profiling.Profiler.get().push("toSpawn");
         List<ISchematicEntity> toSpawn = getBuildingInfo().entities.stream()
             .filter(schematicEntity -> !failedEntityPlacements.contains(schematicEntity))
             // Find entities by their recorded attachment or position. With a frame,
@@ -1055,9 +1059,9 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
             .filter(schematicEntity -> entitiesWithinBox.stream()
                 .noneMatch(existing -> matchesPlacedEntity(schematicEntity, existing, level)))
             .collect(Collectors.toList());
-        level.getProfiler().pop();
+        net.minecraft.util.profiling.Profiler.get().pop();
         // Compute needed stacks
-        level.getProfiler().push("remainingDisplayRequired");
+        net.minecraft.util.profiling.Profiler.get().push("remainingDisplayRequired");
         remainingDisplayRequired.clear();
         remainingDisplayRequired.addAll(StackUtil.mergeSameItems(
             Stream.concat(
@@ -1074,9 +1078,9 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
                     )
             ).collect(Collectors.toList())
         ));
-        level.getProfiler().pop();
+        net.minecraft.util.profiling.Profiler.get().pop();
         // Kill not needed entities
-        level.getProfiler().push("toKill");
+        net.minecraft.util.profiling.Profiler.get().push("toKill");
         List<Entity> toKill = entitiesWithinBox.stream()
             .filter(entity -> entity != null
                 && getBuildingInfo().entities.stream()
@@ -1086,10 +1090,10 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
             .collect(Collectors.toList());
         if (!toKill.isEmpty()) {
             if (!hasEntityActionPower()) {
-                level.getProfiler().pop();
+                net.minecraft.util.profiling.Profiler.get().pop();
                 return false;
             } else {
-                level.getProfiler().push("kill");
+                net.minecraft.util.profiling.Profiler.get().push("kill");
                 boolean needsMoreEntityPower = false;
                 for (Entity entity : toKill) {
                     if (!hasEntityActionPower()) {
@@ -1104,14 +1108,14 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
                         if (entity.isRemoved()) chargeEntityAction();
                     }
                 }
-                level.getProfiler().pop();
+                net.minecraft.util.profiling.Profiler.get().pop();
                 if (needsMoreEntityPower) {
-                    level.getProfiler().pop();
+                    net.minecraft.util.profiling.Profiler.get().pop();
                     return false;
                 }
             }
         }
-        level.getProfiler().pop();
+        net.minecraft.util.profiling.Profiler.get().pop();
         // Build the structure and fill already placed inventories independently. Inventory contents must not block
         // placement of the block itself, and may arrive over multiple ticks as resources become available.
         boolean blocksDone = super.tick();
@@ -1130,7 +1134,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
         }
 
         boolean spawnedAll = true;
-        level.getProfiler().push("spawn");
+        net.minecraft.util.profiling.Profiler.get().push("spawn");
         for (ISchematicEntity schematicEntity : toSpawn) {
             if (!hasEntityActionPower()) {
                 spawnedAll = false;
@@ -1177,7 +1181,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
             }
             chargeEntityAction();
         }
-        level.getProfiler().pop();
+        net.minecraft.util.profiling.Profiler.get().pop();
         return spawnedAll;
     }
 

@@ -6,6 +6,8 @@
 
 package buildcraft.factory.tile;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.lib.compat.minecraft.persistence.BCValueOutput;
 import buildcraft.lib.compat.minecraft.persistence.BCValueInput;
 import java.io.IOException;
@@ -219,7 +221,7 @@ public class TileTank extends TileBC_Neptune implements IDebuggable, IFluidHandl
             AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_STORE_FLUIDS);
         }
         if (!didChange && !player.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(this, buffer -> buffer.writeBlockPos(worldPosition));
+            FabricMenuOpening.open(serverPlayer, this, buffer -> buffer.writeBlockPos(worldPosition));
         }
         return InteractionResult.SUCCESS;
 	}

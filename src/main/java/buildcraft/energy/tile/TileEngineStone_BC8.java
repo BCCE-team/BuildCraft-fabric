@@ -4,6 +4,8 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.energy.tile;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.lib.compat.minecraft.persistence.BCValueOutput;
 import buildcraft.lib.compat.minecraft.persistence.BCValueInput;
 import buildcraft.api.v2.energy.MjAmount;
@@ -113,7 +115,7 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
             return InteractionResult.PASS;
         }
         if (!level.isClientSide() && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(this, buffer -> buffer.writeBlockPos(worldPosition));
+            FabricMenuOpening.open(serverPlayer, this, buffer -> buffer.writeBlockPos(worldPosition));
             return InteractionResult.CONSUME;
         }
         return InteractionResult.SUCCESS;

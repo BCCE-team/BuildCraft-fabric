@@ -78,7 +78,7 @@ public abstract class TileLaserTableBase extends TileBC_Neptune implements Laser
     public abstract long getTarget();
 
     public long getGuiTarget() {
-        return level != null && level.isClientSide ? targetClient : getTarget();
+        return level != null && level.isClientSide() ? targetClient : getTarget();
     }
 
     @Override
@@ -103,7 +103,7 @@ public abstract class TileLaserTableBase extends TileBC_Neptune implements Laser
     @Override
     public void update() {
         avgPower.tick();
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return;
         }
 

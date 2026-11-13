@@ -6,6 +6,8 @@
 
 package buildcraft.silicon.tile;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.lib.compat.minecraft.persistence.BCValueOutput;
 import buildcraft.lib.compat.minecraft.persistence.BCValueInput;
 import buildcraft.api.v2.energy.MjAmount;
@@ -91,13 +93,13 @@ public class TileAdvancedCraftingTable extends TileLaserTableBase implements IAu
 
     @Override
     public long getTarget() {
-        return level.isClientSide ? POWER_REQ : crafting.canCraft() ? POWER_REQ : 0;
+        return level.isClientSide() ? POWER_REQ : crafting.canCraft() ? POWER_REQ : 0;
     }
 
     @Override
     public void update() {
         super.update();
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return;
         }
         boolean didChange = crafting.tick();
@@ -142,7 +144,7 @@ public class TileAdvancedCraftingTable extends TileLaserTableBase implements IAu
     @Override
     public InteractionResult onActivated(Player player, InteractionHand hand, BlockHitResult hit) {
         if(player instanceof ServerPlayer splayer) {
-            splayer.openMenu(this, buffer -> buffer.writeBlockPos(worldPosition));
+            FabricMenuOpening.open(splayer, this, buffer -> buffer.writeBlockPos(worldPosition));
         }
         return super.onActivated(player, hand, hit);
     }
@@ -162,15 +164,15 @@ public class TileAdvancedCraftingTable extends TileLaserTableBase implements IAu
     }
 
     public int getRecipeSelectionIndex() {
-        return level != null && level.isClientSide ? recipeSelectionIndexClient : crafting.getSelectedRecipeIndex();
+        return level != null && level.isClientSide() ? recipeSelectionIndexClient : crafting.getSelectedRecipeIndex();
     }
 
     public int getRecipeSelectionCount() {
-        return level != null && level.isClientSide ? recipeSelectionCountClient : crafting.getMatchingRecipeCount();
+        return level != null && level.isClientSide() ? recipeSelectionCountClient : crafting.getMatchingRecipeCount();
     }
 
     public boolean cycleRecipe(int delta) {
-        if (level == null || level.isClientSide || !crafting.selectRecipe(delta)) {
+        if (level == null || level.isClientSide() || !crafting.selectRecipe(delta)) {
             return false;
         }
         resultClient.setStackInSlot(0, crafting.getAssumedResult());

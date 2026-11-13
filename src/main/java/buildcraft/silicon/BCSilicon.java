@@ -43,7 +43,7 @@ public final class BCSilicon {
     private static final BCDeferredRegister<CreativeModeTab> CREATIVE_TABS =
         BCDeferredRegister.create("minecraft:creative_mode_tab", "buildcraft");
     public static final BCRegistryEntry<CreativeModeTab> FACADES_TAB = CREATIVE_TABS.register("facades", () ->
-        CreativeModeTab.builder()
+        net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab.builder()
             .title(Component.translatable("itemGroup.buildcraft.facades"))
             .icon(tabFacades::makeIcon)
             .displayItems((parameters, output) -> tabFacades.accept(List.of(), output::accept))

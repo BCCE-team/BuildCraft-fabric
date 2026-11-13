@@ -57,7 +57,7 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
 
     @Override
     public boolean requestPipeExtension(Level world, BlockPos pos, Direction dir, StripesOutput stripes, ItemStack stack) {
-        if (world.isClientSide || stack.isEmpty() || !(stack.getItem() instanceof IItemPipe)) {
+        if (world.isClientSide() || stack.isEmpty() || !(stack.getItem() instanceof IItemPipe)) {
             return false;
         }
         ResourceKey<Level> id = world.dimension();
@@ -77,7 +77,7 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
 
 
     public void tick(BCEvents.LevelTick event) {
-        if (event.getLevel().isClientSide) {
+        if (event.getLevel().isClientSide()) {
             return;
         }
         List<PipeExtensionRequest> rList = requests.get(event.getLevel().dimension());
@@ -129,7 +129,7 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
             }
             retractDir = possible.get(Mth.nextInt(w.getRandom(), 0, possible.size() - 1));
         }
-        BlockPos p = r.pos.offset(retractDir.getNormal());
+        BlockPos p = r.pos.offset(retractDir.getUnitVec3i());
 
         NonNullList<ItemStack> stacksToSendBack = NonNullList.create();
         // Always send back catalyst pipe
@@ -221,7 +221,7 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
     }
 
     private void extend(Level w, PipeExtensionRequest r) {
-        BlockPos p = r.pos.offset(r.dir.getNormal());
+        BlockPos p = r.pos.offset(r.dir.getUnitVec3i());
         if (!w.isEmptyBlock(p) && !w.getBlockState(p).canBeReplaced()) {
             r.stripes.sendItem(r.stack.copy(), r.dir);
             return;
@@ -358,7 +358,7 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
     }
 
     private boolean isValidRetractionPath(Level w, PipeExtensionRequest r, Direction retractDir) {
-        BlockPos pipePos = r.pos.offset(retractDir.getNormal());
+        BlockPos pipePos = r.pos.offset(retractDir.getUnitVec3i());
         IPipe pipe = CapUtil.getCapability(w, pipePos, PipeApi.CAP_PIPE, null);
         if (pipe != null) {
             boolean connected = false;

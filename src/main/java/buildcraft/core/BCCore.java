@@ -54,13 +54,13 @@ public final class BCCore {
     private static final BCDeferredRegister<CreativeModeTab> CREATIVE_TABS =
         BCDeferredRegister.create("minecraft:creative_mode_tab", "buildcraft");
     public static final BCRegistryEntry<CreativeModeTab> MAIN_TAB = CREATIVE_TABS.register("main", () ->
-        CreativeModeTab.builder()
+        net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab.builder()
             .title(Component.translatable("itemGroup.buildcraft.main"))
             .icon(BUILDCRAFT_TAB::makeIcon)
             .displayItems((parameters, output) -> BUILDCRAFT_TAB.accept(List.of(), output::accept))
             .build());
     public static final BCRegistryEntry<CreativeModeTab> FLUID_TAB = CREATIVE_TABS.register("fluid", () ->
-        CreativeModeTab.builder()
+        net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab.builder()
             .title(Component.translatable("itemGroup.buildcraft.fluid"))
             .icon(tabFluids::makeIcon)
             .displayItems((parameters, output) -> tabFluids.accept(List.of(), output::accept))

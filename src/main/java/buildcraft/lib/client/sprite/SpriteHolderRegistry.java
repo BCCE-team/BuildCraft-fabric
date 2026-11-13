@@ -10,7 +10,6 @@ import buildcraft.lib.internal.debug.BCDebugging;
 import buildcraft.lib.internal.debug.BCLog;
 import buildcraft.lib.internal.core.render.ISprite;
 import buildcraft.lib.misc.SpriteUtil;
-import com.mojang.blaze3d.opengl.GlStateManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlas;

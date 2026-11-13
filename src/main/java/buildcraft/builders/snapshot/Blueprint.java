@@ -6,6 +6,8 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.compat.NbtCompat;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -159,9 +161,9 @@ public class Blueprint extends Snapshot {
     }
 
     private static void normalizeSchematicTag(CompoundTag tag) {
-        CompoundTag dataTag = tag.getCompound("data");
-        if (dataTag.contains("tileNbt", Tag.TAG_COMPOUND)) {
-            normalizeBlockEntityTag(dataTag.getCompound("tileNbt"));
+        CompoundTag dataTag = NbtCompat.getCompound(tag, "data");
+        if (NbtCompat.contains(dataTag, "tileNbt", Tag.TAG_COMPOUND)) {
+            normalizeBlockEntityTag(NbtCompat.getCompound(dataTag, "tileNbt"));
         }
     }
 
@@ -201,11 +203,11 @@ public class Blueprint extends Snapshot {
             palette.add(SchematicBlockManager.readFromNBTAllowUnavailable(schematicBlockTag));
         }
         data = new int[Snapshot.getDataSize(size)];
-        ListTag serializedDataList = nbt.contains("data", Tag.TAG_LIST)
-            ? nbt.getList("data", Tag.TAG_INT)
+        ListTag serializedDataList = NbtCompat.contains(nbt, "data", Tag.TAG_LIST)
+            ? NbtCompat.getList(nbt, "data", Tag.TAG_INT)
             : null;
-        int[] serializedDataIntArray = nbt.contains("data", Tag.TAG_INT_ARRAY)
-            ? nbt.getIntArray("data")
+        int[] serializedDataIntArray = NbtCompat.contains(nbt, "data", Tag.TAG_INT_ARRAY)
+            ? NbtCompat.getIntArray(nbt, "data")
             : null;
         if (serializedDataIntArray == null && serializedDataList == null) {
             throw new InvalidInputDataException("Can't read a blueprint with no data!");
@@ -225,7 +227,7 @@ public class Blueprint extends Snapshot {
                 for (int x = 0; x < size.getX(); x++) {
                     int index = serializedDataList == null
                         ? serializedDataIntArray[posToIndex(x, y, z)]
-                        : serializedDataList.getInt(posToIndex(x, y, z));
+                        : NbtCompat.getInt(serializedDataList, posToIndex(x, y, z));
                     if (index < 0 || index >= palette.size()) {
                         throw new InvalidInputDataException("Invalid blueprint palette index " + index
                             + " for palette size " + palette.size());

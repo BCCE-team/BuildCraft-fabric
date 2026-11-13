@@ -3,7 +3,7 @@ package buildcraft.lib.client.sprite;
 
 import javax.annotation.Nullable;
 import org.joml.Matrix3x2f;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.RenderPipeline;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import buildcraft.lib.compat.RenderCompat;
 import buildcraft.lib.internal.core.render.ISprite;

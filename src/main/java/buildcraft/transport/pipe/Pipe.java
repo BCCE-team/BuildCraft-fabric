@@ -6,6 +6,8 @@
 
 package buildcraft.transport.pipe;
 
+import buildcraft.lib.misc.CapUtil;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -415,7 +417,7 @@ public final class Pipe implements IPipe, IDebuggable, PipeExecutionContext {
                 if (oBehaviour == null) {
                     continue;
                 }
-                PipePluggable oPlug = level.getCapability(PipeApi.CAP_PLUG, nPos, facing.getOpposite());
+                PipePluggable oPlug = CapUtil.getCapability(level, nPos, PipeApi.CAP_PLUG, facing.getOpposite());
                 if (oPlug == null) {
                     oPlug = PipePluggable.EMPTY;
                 }

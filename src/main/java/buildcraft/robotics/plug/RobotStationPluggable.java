@@ -123,6 +123,12 @@ public class RobotStationPluggable extends PipePluggable implements IDockingStat
         return Math.min(Math.max(0L, robot.getBattery().getCapacity() - robot.getBattery().getStored()), MAX_CHARGE_PER_TICK);
     }
 
+    /** Bridge the MJ receiver contract to the legacy pipe action enum. */
+    @Override
+    public long receivePower(long microJoules, buildcraft.lib.compat.neoforge263.fluids.IFluidHandler.FluidAction action) {
+        return receivePower(microJoules, FluidAction.valueOf(action.name()));
+    }
+
     public long receivePower(long microJoules, FluidAction action) {
         EntityRobotBase robot = getDockedRobot();
         if (microJoules <= 0 || robot == null || robot.getBattery() == null) {

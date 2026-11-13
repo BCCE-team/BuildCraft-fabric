@@ -52,7 +52,7 @@ public abstract class PipeFlow implements IBCCapabilityProvider {
 
     public void sendPayload(int id) {
         @SuppressWarnings("resource")
-		final BCNetworkSide side = pipe.getHolder().getPipeWorld().isClientSide ? BCNetworkSide.CLIENT : BCNetworkSide.SERVER;
+		final BCNetworkSide side = pipe.getHolder().getPipeWorld().isClientSide() ? BCNetworkSide.CLIENT : BCNetworkSide.SERVER;
         sendCustomPayload(id, (buf) -> writePayload(id, buf, side));
     }
 

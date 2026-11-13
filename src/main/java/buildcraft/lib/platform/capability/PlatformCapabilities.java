@@ -20,10 +20,14 @@ public final class PlatformCapabilities {
         var level = tile.getLevel();
         if (!level.hasChunkAt(tile.getBlockPos())) return null;
 
-        IHasWork nativeWork = TilesAPI.CAP_HAS_WORK.find(
+        IHasWork nativeWork = TilesAPI.fabricLookup(TilesAPI.CAP_HAS_WORK).find(
             level, tile.getBlockPos(), tile.getBlockState(), tile, face
         );
         if (nativeWork != null) return nativeWork;
+        // A tile not yet registered with Fabric can still publish its internal BCCE token.
+        IHasWork owned = buildcraft.lib.misc.CapUtil.getCapability(
+            level, tile.getBlockPos(), TilesAPI.CAP_HAS_WORK, face);
+        if (owned != null) return owned;
         if (tile instanceof MachineHostProvider provider) {
             return () -> {
                 try {

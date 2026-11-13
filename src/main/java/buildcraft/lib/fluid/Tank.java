@@ -181,10 +181,10 @@ public class Tank implements IFluidHandlerAdv, IFluidHandler, IFluidTank {
         if (fluidStack != FluidStack.EMPTY && amount > 0) {
             toolTip.add(FluidCompat.getDisplayName(fluidStack));
         }
-        toolTip.add(LocaleUtil.localizeFluidStaticAmount(amount, getCapacity()).setStyle(Style.EMPTY.withColor(BCTextFormat.GRAY)));
+        toolTip.add(LocaleUtil.localizeFluidStaticAmount(amount, getCapacity()).setStyle(BCTextFormat.GRAY.apply(Style.EMPTY)));
         FluidStack serverFluid = getFluid();
         if (serverFluid != null && serverFluid.getAmount() > 0) {
-            toolTip.add(Component.translatable("tooltip.buildcraftlib.fluid.server_side_on_client").setStyle(Style.EMPTY.withColor(BCTextFormat.RED)));
+            toolTip.add(Component.translatable("tooltip.buildcraftlib.fluid.server_side_on_client").setStyle(BCTextFormat.RED.apply(Style.EMPTY)));
             toolTip.add(FluidCompat.getDisplayName(serverFluid));
             toolTip.add(LocaleUtil.localizeFluidStaticAmount(serverFluid.getAmount(), getCapacity()));
         }

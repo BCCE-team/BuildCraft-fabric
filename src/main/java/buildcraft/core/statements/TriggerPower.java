@@ -6,6 +6,8 @@
 
 package buildcraft.core.statements;
 
+import buildcraft.lib.misc.CapUtil;
+
 import buildcraft.lib.internal.mj.MjCapabilities;
 
 import buildcraft.lib.internal.core.EnumPipePart;
@@ -63,12 +65,12 @@ public class TriggerPower extends BCStatement implements ITriggerInternal, ITrig
 
     public static boolean isTriggeringTile(BlockEntity tile, Direction face) {
         return tile != null && tile.getLevel() != null
-            && tile.getLevel().getCapability(MjCapabilities.CAP_READABLE, tile.getBlockPos(), face) != null;
+            && CapUtil.getCapability(tile.getLevel(), tile.getBlockPos(), MjCapabilities.CAP_READABLE, face) != null;
     }
 
     protected boolean isActive(BlockEntity tile, EnumPipePart side) {
         IMjReadable readable = tile == null || tile.getLevel() == null ? null
-            : tile.getLevel().getCapability(MjCapabilities.CAP_READABLE, tile.getBlockPos(), side.face);
+            : CapUtil.getCapability(tile.getLevel(), tile.getBlockPos(), MjCapabilities.CAP_READABLE, side.face);
         return isTriggeredMjConnector(readable);
     }
 

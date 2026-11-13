@@ -6,6 +6,8 @@
 
 package buildcraft.silicon.tile;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.api.v2.energy.MjAmount;
 
 import javax.annotation.Nonnull;
@@ -69,7 +71,7 @@ public class TileChargingTable extends TileLaserTableBase implements MenuProvide
 
     public void update() {
         super.update();
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return;
         }
 
@@ -115,7 +117,7 @@ public class TileChargingTable extends TileLaserTableBase implements MenuProvide
 
     public InteractionResult onActivated(Player player, InteractionHand hand, BlockHitResult hit) {
         if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(this, buffer -> buffer.writeBlockPos(worldPosition));
+            FabricMenuOpening.open(serverPlayer, this, buffer -> buffer.writeBlockPos(worldPosition));
         }
         return InteractionResult.SUCCESS;
     }

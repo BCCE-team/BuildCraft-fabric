@@ -6,6 +6,8 @@
 
 package buildcraft.builders.block;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.builders.tile.TileFiller;
 import buildcraft.lib.block.BlockBCTile_Neptune;
 import buildcraft.lib.block.IBlockWithFacing;
@@ -51,7 +53,7 @@ public class BlockFiller extends BlockBCTile_Neptune implements IBlockWithFacing
             if (!filler.hasBox()) {
                 filler.refreshAreaFromMarkers(player);
             }
-            serverPlayer.openMenu(filler, buffer -> buffer.writeBlockPos(pos));
+            FabricMenuOpening.open(serverPlayer, filler, buffer -> buffer.writeBlockPos(pos));
         }
         return (world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER);
     }

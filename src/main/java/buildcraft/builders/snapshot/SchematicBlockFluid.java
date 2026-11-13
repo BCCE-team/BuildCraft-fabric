@@ -6,6 +6,8 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.compat.NbtCompat;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -143,8 +145,8 @@ public class SchematicBlockFluid implements ISchematicBlock {
 
     @Override
     public void deserializeNBT(CompoundTag nbt) throws InvalidInputDataException {
-        blockState = SavedBlockStateNbt.read(nbt.getCompound("blockState"));
-        isFlowing = nbt.getBoolean("isFlowing");
+        blockState = SavedBlockStateNbt.read(NbtCompat.getCompound(nbt, "blockState"));
+        isFlowing = NbtCompat.getBoolean(nbt, "isFlowing");
         // The snapshot's schematic-type discriminator is not trusted. Re-run the
         // fluid factory invariant on loaded data, including the source/flowing bit.
         if (blockState == null || BlockUtil.getFluid(blockState.getBlock()) == Fluids.EMPTY

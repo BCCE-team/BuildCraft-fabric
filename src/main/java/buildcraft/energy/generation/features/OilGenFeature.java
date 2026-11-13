@@ -1,5 +1,7 @@
 package buildcraft.energy.generation.features;
 
+import buildcraft.lib.compat.LevelCompat;
+
 import java.util.List;
 
 import com.mojang.serialization.MapCodec;
@@ -92,8 +94,8 @@ public final class OilGenFeature implements Feature {
     private boolean placeLocked(WorldGenLevel world, int chunkX, int chunkZ,
             OilFeatureConfiguration configuration) {
         int count = 0;
-        BlockPos min = new BlockPos(chunkX << 4, world.getMinBuildHeight(), chunkZ << 4);
-        BlockPos max = new BlockPos((chunkX << 4) + 15, world.getMaxBuildHeight() - 1,
+        BlockPos min = new BlockPos(chunkX << 4, LevelCompat.getMinBuildHeight(world), chunkZ << 4);
+        BlockPos max = new BlockPos((chunkX << 4) + 15, LevelCompat.getMaxBuildHeight(world) - 1,
                 (chunkZ << 4) + 15);
         Box box = new Box(min, max);
 

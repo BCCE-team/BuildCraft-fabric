@@ -40,7 +40,8 @@ public interface IChunkLoadingTile {
         BlockPos pos = ((BlockEntity) this).getBlockPos();
         Set<ChunkPos> chunkPoses = new HashSet<>(4);
         for (Direction face : Direction.Plane.HORIZONTAL) {
-            chunkPoses.add(new ChunkPos(pos.offset(face.getUnitVec3i())));
+            BlockPos adjacent = pos.offset(face.getUnitVec3i());
+            chunkPoses.add(new ChunkPos(adjacent.getX() >> 4, adjacent.getZ() >> 4));
         }
         return chunkPoses;
     }

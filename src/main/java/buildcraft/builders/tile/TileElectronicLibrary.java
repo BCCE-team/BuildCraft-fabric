@@ -160,7 +160,7 @@ public class TileElectronicLibrary extends TileBC_Neptune implements MenuProvide
 
     @Override
     public void update() {
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             progressDownLast = progressDown;
             progressUpLast = progressUp;
             return;

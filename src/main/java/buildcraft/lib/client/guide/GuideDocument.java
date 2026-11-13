@@ -308,7 +308,7 @@ public final class GuideDocument {
                 if (link.lookingAt()) {
                     flush(result, text, formats, colours, codeDepth > 0);
                     MutableComponent linked = Component.literal(link.group(1));
-                    linked.withStyle(BCTextFormat.BLUE, BCTextFormat.UNDERLINE);
+                    linked.withStyle(BCTextFormat.BLUE).withStyle(BCTextFormat.UNDERLINE);
                     result.append(linked);
                     linkTarget = link.group(2);
                     index += link.end();

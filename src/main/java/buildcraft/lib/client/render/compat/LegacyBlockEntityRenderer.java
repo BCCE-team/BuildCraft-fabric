@@ -53,6 +53,8 @@ public interface LegacyBlockEntityRenderer<T extends BlockEntity>
             return this;
         }
 
+        public VertexConsumer setUv3(float u, float v) { return this; }
+
         public VertexConsumer setNormal(float x, float y, float z) {
             return this;
         }

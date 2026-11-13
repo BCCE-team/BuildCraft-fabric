@@ -192,6 +192,12 @@ public class PipeBehaviourObsidian extends PipeBehaviour implements IMjRedstoneR
         return power - receivePower(power, FluidAction.SIMULATE);
     }
 
+    /** Bridge the MJ receiver contract to the legacy pipe action enum. */
+    @Override
+    public long receivePower(long microJoules, buildcraft.lib.compat.neoforge263.fluids.IFluidHandler.FluidAction simulate) {
+        return receivePower(microJoules, FluidAction.valueOf(simulate.name()));
+    }
+
     public long receivePower(long microJoules, FluidAction simulate) {
         // Demand/FE simulation may be queried on the logical client. Entity inventory extraction remains server-only.
         if (pipe.getHolder().getPipeWorld().isClientSide()) {

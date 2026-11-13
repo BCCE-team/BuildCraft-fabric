@@ -6,6 +6,8 @@
 
 package buildcraft.transport.pipe.behaviour;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import java.io.IOException;
 
 import buildcraft.lib.internal.core.EnumPipePart;
@@ -138,7 +140,7 @@ public class PipeBehaviourWoodDiamond extends PipeBehaviourWood implements MenuP
             }
         }
         if (!player.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(this, buffer -> buffer.writeBlockPos(pipe.getHolder().getPipePos()));
+            FabricMenuOpening.open(serverPlayer, this, buffer -> buffer.writeBlockPos(pipe.getHolder().getPipePos()));
         }
         return true;
     }

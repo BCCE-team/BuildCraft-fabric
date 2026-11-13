@@ -128,6 +128,7 @@ public interface CapturedBlockEntityRenderer<T extends BlockEntity>
         public VertexConsumer setUv(float u, float v) { this.u = u; this.v = v; return this; }
         public VertexConsumer setUv1(int u, int v) { overlayU = u; overlayV = v; return this; }
         public VertexConsumer setUv2(int u, int v) { lightU = u; lightV = v; return this; }
+        public VertexConsumer setUv3(float u, float v) { return this; }
         public VertexConsumer setNormal(float x, float y, float z) { nx = x; ny = y; nz = z; return this; }
         public VertexConsumer setLineWidth(float width) { this.width = width; return this; }
     }

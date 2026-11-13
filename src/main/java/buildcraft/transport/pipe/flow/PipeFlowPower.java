@@ -797,7 +797,13 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
             return sent - accepted;
         }
 
-        public long receivePower(long microJoules, FluidAction action) {
+        /** Bridge the MJ receiver contract to the legacy pipe action enum. */
+    @Override
+    public long receivePower(long microJoules, buildcraft.lib.compat.neoforge263.fluids.IFluidHandler.FluidAction action) {
+        return receivePower(microJoules, FluidAction.valueOf(action.name()));
+    }
+
+    public long receivePower(long microJoules, FluidAction action) {
             if (!isReceiver || disabled || microJoules <= 0) {
                 return microJoules;
             }

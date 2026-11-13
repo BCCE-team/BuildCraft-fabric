@@ -4,6 +4,8 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.core.item;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -51,7 +53,7 @@ public class ItemList_BC8 extends Item implements ItemListAdapter, ItemLabelAdap
                 (id, inventory, menuPlayer) -> new ContainerList(id, inventory, hand),
                 getDisplayName()
             );
-            serverPlayer.openMenu(provider, buffer -> buffer.writeEnum(hand));
+            FabricMenuOpening.open(serverPlayer, provider, buffer -> buffer.writeEnum(hand));
         }
         return InteractionResult.SUCCESS;
 	}

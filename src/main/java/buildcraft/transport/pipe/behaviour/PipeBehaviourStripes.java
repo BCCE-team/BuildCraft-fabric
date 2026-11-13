@@ -179,6 +179,12 @@ public class PipeBehaviourStripes extends PipeBehaviour implements StripesOutput
         return battery.getCapacity() - battery.getStored();
     }
 
+    /** Bridge the MJ receiver contract to the legacy pipe action enum. */
+    @Override
+    public long receivePower(long microJoules, buildcraft.lib.compat.neoforge263.fluids.IFluidHandler.FluidAction simulate) {
+        return receivePower(microJoules, FluidAction.valueOf(simulate.name()));
+    }
+
     public long receivePower(long microJoules, FluidAction simulate) {
         return battery.addPowerChecking(microJoules, simulate);
     }

@@ -48,9 +48,9 @@ public abstract class ContainerScreenBase<T extends AbstractContainerMenu> exten
         return TEXTURE_BASE;
     }
 
-    public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         for (int i = 0; i < size; i++) {
             components[i].render(guiGraphics, mouseX, mouseY, partialTick, this);
         }
@@ -59,6 +59,12 @@ public abstract class ContainerScreenBase<T extends AbstractContainerMenu> exten
                 components[i].postRender(guiGraphics, mouseX, mouseY, partialTick, this);
             }
         }
+    }
+
+    @Override
+    public void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        renderBg(guiGraphics, partialTick, mouseX, mouseY);
+        super.extractContents(guiGraphics, mouseX, mouseY, partialTick);
     }
 
     protected void renderBg(GuiGraphicsExtractor guiGraphics, float partialTick, int mouseX, int mouseY) {
@@ -115,10 +121,11 @@ public abstract class ContainerScreenBase<T extends AbstractContainerMenu> exten
         super.onClose();
     }
 
-    protected void renderTooltip(GuiGraphicsExtractor guiGraphics, int x, int y) {
+    @Override
+    protected void extractTooltip(GuiGraphicsExtractor guiGraphics, int x, int y) {
         for (int i = 0; i < size; i++) {
             components[i].renderTooltip(guiGraphics, x, y);
         }
-        super.renderTooltip(guiGraphics, x, y);
+        super.extractTooltip(guiGraphics, x, y);
     }
 }

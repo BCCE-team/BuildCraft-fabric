@@ -6,6 +6,10 @@
 
 package buildcraft.builders.tile;
 
+import buildcraft.lib.compat.NbtCompat;
+
+import buildcraft.lib.compat.LevelCompat;
+
 import buildcraft.lib.compat.minecraft.persistence.BCValueOutput;
 import buildcraft.lib.compat.minecraft.persistence.BCValueInput;
 import buildcraft.api.v2.energy.MjAmount;
@@ -318,7 +322,7 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
             for (BlockPos p : openSet) {
                 Collections.shuffle(orderAsList);
                 for (Direction face : order) {
-                    BlockPos next = p.offset(face.getNormal());
+                    BlockPos next = p.offset(face.getUnitVec3i());
                     // Each iteration we add the *next* positions, rather than the current position
                     // Then we can just add the quarries position once (which isn't part of the frame)
                     if (frameBox.isOnEdge(next) && visitedSet.add(next)) {
@@ -387,12 +391,12 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
     @Override
     public void onPlacedBy(LivingEntity placer, ItemStack stack) {
         super.onPlacedBy(placer, stack);
-        if (level != null && !level.isClientSide) setPlacedQuarryItem(stack);
-        if (placer.level().isClientSide) {
+        if (level != null && !level.isClientSide()) setPlacedQuarryItem(stack);
+        if (placer.level().isClientSide()) {
             return;
         }
         Direction facing = level.getBlockState(worldPosition).getValue(BlockBCBase_Neptune.PROP_FACING);
-        BlockPos areaPos = worldPosition.offset(facing.getOpposite().getNormal());
+        BlockPos areaPos = worldPosition.offset(facing.getOpposite().getUnitVec3i());
         BlockEntity tile = level.getBlockEntity(areaPos);
         BlockPos min = null, max = null;
         if (tile instanceof IAreaProvider) {
@@ -489,7 +493,7 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
         miningBox.reset();
         int minY = max.getY() - 1 - BCCoreConfig.miningMaxDepth;
         if (level.isOutsideBuildHeight(new BlockPos(min.getX(), minY, min.getZ()))) {
-            minY = level.getMinBuildHeight();
+            minY = LevelCompat.getMinBuildHeight(level);
         }
         miningBox.setMin(new BlockPos(min.getX() + 1, minY, min.getZ() + 1));
         miningBox.setMax(new BlockPos(max.getX() - 1, max.getY() - 1, max.getZ() - 1));
@@ -607,7 +611,7 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
 
     @Override
     public void onPumpWantsPower() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             pumpWantsPowerUntil = level.getGameTime() + PUMP_POWER_GRACE_TICKS;
         }
     }
@@ -728,7 +732,7 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
     @Override
     public void onLoad() {
         super.onLoad();
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             updatePoses();
             chunkLoadingDirty = true;
             // Do not call ForgeChunkManager while the owner chunk is still completing its load future.
@@ -921,12 +925,12 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
         if (drillPos == null) {
             collisionBoxes = ImmutableList.of();
             collisionDrillPos = null;
-            if (level != null && !level.isClientSide) {
+            if (level != null && !level.isClientSide()) {
                 clearQuarryCollisionBlocks();
             }
         }
         
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             prevClientDrillPos = clientDrillPos;
             clientDrillPos = drillPos;
             if (currentTask != null) {
@@ -1162,7 +1166,7 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
         }
 
         long gameTime = serverLevel.getGameTime();
-        UUID ownerId = getOwner().getId();
+        UUID ownerId = getOwner().id();
         Map<UUID, Map<BlockPos, Long>> byOwner = FULL_SPEED_QUARRIES.computeIfAbsent(
             serverLevel, ignored -> new HashMap<>()
         );
@@ -1177,7 +1181,7 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
 
     private void unlockCompletionAdvancement() {
         if (getOwner() != null && is64By64Quarry()) {
-            AdvancementUtil.unlockAdvancement(getOwner().getId(), ADVANCEMENT_COMPLETE);
+            AdvancementUtil.unlockAdvancement(getOwner().id(), ADVANCEMENT_COMPLETE);
         }
     }
 
@@ -1219,7 +1223,7 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
     }
 
     private void updateQuarryCollisionBlocks() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         Map<BlockPos, Integer> wantedBlocks = buildCollisionBlockMasks();
@@ -1244,7 +1248,7 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
         BlockPos min = frameBox.min();
         BlockPos max = frameBox.max();
         int drillX = clamp(floorToBlock(drillPos.x), min.getX(), max.getX());
-        int drillY = clamp(floorToBlock(drillPos.y), level.getMinBuildHeight(), max.getY());
+        int drillY = clamp(floorToBlock(drillPos.y), LevelCompat.getMinBuildHeight(level), max.getY());
         int drillZ = clamp(floorToBlock(drillPos.z), min.getZ(), max.getZ());
         int topY = max.getY();
 
@@ -1304,7 +1308,7 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
     }
 
     private void clearQuarryCollisionBlocks() {
-        if (level == null || level.isClientSide || collisionBlockPoses.isEmpty()) {
+        if (level == null || level.isClientSide() || collisionBlockPoses.isEmpty()) {
             return;
         }
         for (BlockPos pos : new HashSet<>(collisionBlockPoses)) {
@@ -1405,7 +1409,7 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
             for (Direction face : Direction.values()) {
                 if (face.getAxis() == Axis.Y) continue;
                 // We can't read the blockstate yet so instead we'll have to try all possible faces
-                if (frameBox.isOnEdge(getBlockPos().offset(face.getNormal()))) {
+                if (frameBox.isOnEdge(getBlockPos().offset(face.getUnitVec3i()))) {
                     validFace = face;
                     break;
                 }
@@ -1582,7 +1586,7 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
 
     private static long readSerializedTaskReservedPower(CompoundTag nbt) {
         if (nbt == null) return 0;
-        return Math.max(0, nbt.contains("reservedPower") ? nbt.getLong("reservedPower") : nbt.getLong("power"));
+        return Math.max(0, nbt.contains("reservedPower") ? NbtCompat.getLong(nbt, "reservedPower") : NbtCompat.getLong(nbt, "power"));
     }
 
     private static long saturatingAdd(long left, long right) {
@@ -1636,10 +1640,10 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
         }
 
         void readFromNBT(CompoundTag nbt) {
-            power = Math.max(0, nbt.getLong("power"));
+            power = Math.max(0, NbtCompat.getLong(nbt, "power"));
             // Save data without reservedPower tracks only effective progress. Use it as the refundable floor rather than
             // inventing energy; reservedPower records the exact physical withdrawal when present.
-            reservedPower = Math.max(0, nbt.contains("reservedPower") ? nbt.getLong("reservedPower") : power);
+            reservedPower = Math.max(0, nbt.contains("reservedPower") ? NbtCompat.getLong(nbt, "reservedPower") : power);
         }
 
         void invalidateLoadedTask() {
@@ -1713,12 +1717,12 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
         @Override
         void readFromNBT(CompoundTag nbt) {
             super.readFromNBT(nbt);
-            if (!nbt.contains("breakPos", Tag.TAG_LONG)) {
+            if (!NbtCompat.contains(nbt, "breakPos", Tag.TAG_LONG)) {
                 // Missing task data must not silently turn into the world origin.
                 invalidateLoadedTask();
                 return;
             }
-            breakPos = BlockPos.of(nbt.getLong("breakPos"));
+            breakPos = BlockPos.of(NbtCompat.getLong(nbt, "breakPos"));
         }
 
         @Override
@@ -1843,12 +1847,12 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
         @Override
         void readFromNBT(CompoundTag nbt) {
             super.readFromNBT(nbt);
-            if (!nbt.contains("framePos", Tag.TAG_LONG)) {
+            if (!NbtCompat.contains(nbt, "framePos", Tag.TAG_LONG)) {
                 invalidateLoadedTask();
                 return;
             }
             // BlockPos.ZERO.asLong() is a valid position, so field presence is the validity check.
-            framePos = BlockPos.of(nbt.getLong("framePos"));
+            framePos = BlockPos.of(NbtCompat.getLong(nbt, "framePos"));
         }
 
         @Override

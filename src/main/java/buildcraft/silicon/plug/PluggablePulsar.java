@@ -6,6 +6,8 @@
 
 package buildcraft.silicon.plug;
 
+import buildcraft.lib.compat.NbtCompat;
+
 import buildcraft.api.v2.energy.MjAmount;
 
 
@@ -40,7 +42,7 @@ import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.BCSiliconStatements;
 import buildcraft.silicon.client.model.key.KeyPlugPulsar;
 import buildcraft.transport.BCTransportConfig;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -128,10 +130,10 @@ public class PluggablePulsar extends PipePluggable {
 
     public PluggablePulsar(PluggableDefinition definition, IPipeHolder holder, Direction side, CompoundTag nbt) {
         super(definition, holder, side);
-        this.manuallyEnabled = nbt.getBoolean("manuallyEnabled");
-        gateEnabledTicks = nbt.getInt("gateEnabledTicks");
-        gateSinglePulses = nbt.getInt("gateSinglePulses");
-        pulseStage = MathUtil.clamp(nbt.getInt("pulseStage"), 0, PULSE_STAGE);
+        this.manuallyEnabled = NbtCompat.getBoolean(nbt, "manuallyEnabled");
+        gateEnabledTicks = NbtCompat.getInt(nbt, "gateEnabledTicks");
+        gateSinglePulses = NbtCompat.getInt(nbt, "gateSinglePulses");
+        pulseStage = MathUtil.clamp(NbtCompat.getInt(nbt, "pulseStage"), 0, PULSE_STAGE);
     }
 
     @Override
@@ -206,7 +208,7 @@ public class PluggablePulsar extends PipePluggable {
 
     @Override
     public void onTick() {
-        if (holder.getPipeWorld().isClientSide) {
+        if (holder.getPipeWorld().isClientSide()) {
             if (isPulsing) {
                 pulseStage++;
                 if (pulseStage == PULSE_STAGE) {
@@ -278,7 +280,7 @@ public class PluggablePulsar extends PipePluggable {
 
     @Override
     public InteractionResult onPluggableActivate(Player player, BlockHitResult trace, Level level) {
-        if (!holder.getPipeWorld().isClientSide) {
+        if (!holder.getPipeWorld().isClientSide()) {
             manuallyEnabled = !manuallyEnabled;
             SoundUtil.playLeverSwitch(holder.getPipeWorld(), holder.getPipePos(), manuallyEnabled);
             scheduleNetworkUpdate();

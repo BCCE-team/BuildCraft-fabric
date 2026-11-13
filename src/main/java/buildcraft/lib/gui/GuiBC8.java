@@ -147,10 +147,6 @@ public abstract class GuiBC8<C extends MenuBC_Neptune> extends BCContainerScreen
         drawGradientRect(requireGraphics(), area, startColor, endColor);
     }
 
-    public List<Renderable> getButtonList() {
-        return renderables;
-    }
-
     public Font getFontRenderer() {
         return font;
     }

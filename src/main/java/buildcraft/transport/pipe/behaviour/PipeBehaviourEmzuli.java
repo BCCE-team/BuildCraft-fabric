@@ -6,6 +6,8 @@
 
 package buildcraft.transport.pipe.behaviour;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -210,7 +212,7 @@ public class PipeBehaviourEmzuli extends PipeBehaviourWood implements MenuProvid
             return super.onPipeActivate(player, trace, level, part);
         }
         if (!player.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(this, buffer -> buffer.writeBlockPos(trace.getBlockPos()));
+            FabricMenuOpening.open(serverPlayer, this, buffer -> buffer.writeBlockPos(trace.getBlockPos()));
         }
         return true;
     }

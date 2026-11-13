@@ -132,7 +132,7 @@ public class TileFiller extends TileBC_Neptune
             clientPreviewPattern = null;
         }
         // The BCU toggle survives unloading/reloading the chunk.
-        if (level != null && !level.isClientSide) setChanged();
+        if (level != null && !level.isClientSide()) setChanged();
     }
 
     /**
@@ -145,7 +145,7 @@ public class TileFiller extends TileBC_Neptune
     @Nullable
     public Template.BuildingInfo getPreviewBuildingInfo() {
         if (level == null || !previewEnabled) return null;
-        if (!level.isClientSide) return getTemplateBuildingInfo();
+        if (!level.isClientSide()) return getTemplateBuildingInfo();
         if (addon != null) return addon.buildingInfo;
         if (!box.isInitialized()) return null;
 
@@ -204,7 +204,7 @@ public class TileFiller extends TileBC_Neptune
     @Override
     public void onPlacedBy(LivingEntity placer, ItemStack stack) {
         super.onPlacedBy(placer, stack);
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return;
         }
         refreshAreaFromMarkers(placer);
@@ -217,7 +217,7 @@ public class TileFiller extends TileBC_Neptune
      * This keeps directional placement deterministic while accepting any directly adjacent area definition.
      */
     public boolean refreshAreaFromMarkers(@Nullable LivingEntity placer) {
-        if (level == null || level.isClientSide || hasBox()) {
+        if (level == null || level.isClientSide() || hasBox()) {
             return hasBox();
         }
 
@@ -315,7 +315,7 @@ public class TileFiller extends TileBC_Neptune
                                 int slot,
                                 @Nonnull ItemStack before,
                                 @Nonnull ItemStack after) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             if (handler == invResources) {
                 Optional.ofNullable(getBuilder()).ifPresent(SnapshotBuilder::resourcesChanged);
             }
@@ -325,7 +325,7 @@ public class TileFiller extends TileBC_Neptune
 
     @Override
     public void update() {
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             if (isValid()) {
                 builder.tick();
             }
@@ -454,7 +454,7 @@ public class TileFiller extends TileBC_Neptune
                 if (buffer.readBoolean()) {
                     UUID volumeBoxId = buffer.readUUID();
                     EnumAddonSlot slot = buffer.readEnum(EnumAddonSlot.class);
-                    VolumeBox volumeBox = level.isClientSide
+                    VolumeBox volumeBox = level.isClientSide()
                         ? ClientVolumeBoxes.INSTANCE.volumeBoxes.stream()
                             .filter(localVolumeBox -> localVolumeBox.id.equals(volumeBoxId))
                             .findFirst()
@@ -538,7 +538,7 @@ public class TileFiller extends TileBC_Neptune
     }
 
     public void onStatementChange() {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             createAndSendMessage(NET_PATTERN, patternStatement::writeToBuffer);
             // Invert, parameters and the pattern also affect the world hologram.
             if (previewEnabled) sendNetworkUpdate(NET_RENDER_DATA);
@@ -614,7 +614,7 @@ public class TileFiller extends TileBC_Neptune
     }
 
     private void restorePendingBuilder() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         if (pendingAddonVolumeBoxId != null && pendingAddonSlot != null) {
@@ -736,7 +736,7 @@ public class TileFiller extends TileBC_Neptune
     }
 
     public boolean isValid() {
-        return hasBox() && ((level != null &&level.isClientSide) || (addon != null ? addon.buildingInfo : buildingInfo) != null);
+        return hasBox() && ((level != null &&level.isClientSide()) || (addon != null ? addon.buildingInfo : buildingInfo) != null);
     }
 
     @Override

@@ -6,6 +6,8 @@
 
 package buildcraft.builders.block;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import javax.annotation.Nullable;
 
 import buildcraft.builders.tile.TileReplacer;
@@ -47,7 +49,7 @@ public class BlockReplacer extends BlockBCTile_Neptune implements IBlockWithFaci
     private static void openMenu(Level world, BlockPos pos, Player player) {
         if (!world.isClientSide() && player instanceof ServerPlayer serverPlayer
                 && world.getBlockEntity(pos) instanceof TileReplacer tile) {
-            serverPlayer.openMenu(tile, buffer -> buffer.writeBlockPos(pos));
+            FabricMenuOpening.open(serverPlayer, tile, buffer -> buffer.writeBlockPos(pos));
         }
     }
 }

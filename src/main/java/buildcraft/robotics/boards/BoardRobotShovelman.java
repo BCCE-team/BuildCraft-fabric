@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ShovelItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import buildcraft.lib.compat.ItemCompat;
@@ -26,7 +25,7 @@ public class BoardRobotShovelman extends BoardRobotGenericBreakBlock {
     @Override
     public boolean isExpectedTool(ItemStack stack) {
         return !stack.isEmpty()
-                && (stack.getItem() instanceof ShovelItem || ItemCompat.isShovel(stack));
+                && ItemCompat.isShovel(stack);
     }
 
     @Override

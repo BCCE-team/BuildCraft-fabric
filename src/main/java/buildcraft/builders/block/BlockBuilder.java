@@ -4,6 +4,8 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.builders.block;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import buildcraft.lib.internal.enums.EnumOptionalSnapshotType;
 import buildcraft.lib.internal.properties.BuildCraftProperties;
 import buildcraft.builders.tile.TileBuilder;
@@ -85,7 +87,7 @@ public class BlockBuilder extends BlockBCTile_Neptune implements IBlockWithFacin
     private static void openMenu(Level world, BlockPos pos, Player player) {
         if (!world.isClientSide() && player instanceof ServerPlayer serverPlayer
                 && world.getBlockEntity(pos) instanceof TileBuilder tile) {
-            serverPlayer.openMenu(tile, buffer -> buffer.writeBlockPos(pos));
+            FabricMenuOpening.open(serverPlayer, tile, buffer -> buffer.writeBlockPos(pos));
         }
     }
 	

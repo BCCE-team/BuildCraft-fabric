@@ -3,6 +3,8 @@
  */
 package buildcraft.robotics.tile;
 
+import buildcraft.lib.platform.registry.FabricMenuOpening;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -214,7 +216,7 @@ public class TileRequester extends TileBC_Neptune implements RequestProvider, ID
 
     public InteractionResult onActivated(Player player, InteractionHand hand, BlockHitResult hit) {
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(this, buffer -> buffer.writeBlockPos(worldPosition));
+            FabricMenuOpening.open(serverPlayer, this, buffer -> buffer.writeBlockPos(worldPosition));
         }
         return InteractionResult.SUCCESS;
     }

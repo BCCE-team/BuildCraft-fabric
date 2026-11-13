@@ -38,7 +38,7 @@ public enum StripesHandlerShears {
             return false;
         }
 
-        pos = pos.offset(direction.getNormal());
+        pos = pos.offset(direction.getUnitVec3i());
         BlockState state = world.getBlockState(pos);
         Block block = state.getBlock();
 
