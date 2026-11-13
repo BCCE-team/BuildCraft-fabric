@@ -136,3 +136,21 @@ def verifyEnergyIsolation = tasks.register('verifyFabric263EnergyIsolation') {
 }
 tasks.named('jar') { dependsOn verifyEnergyIsolation }
 tasks.named('check') { dependsOn verifyEnergyIsolation }
+
+// Fail closed: Fabric transport must not link against NeoForge namespaces.
+def verifyTransportIsolation = tasks.register('verifyFabric263TransportIsolation') {
+    group = 'verification'
+    description = 'Reject NeoForge references in Fabric Transport sources'
+    doLast {
+        def javaDir = file('src/main/java/buildcraft/transport')
+        def offenders = fileTree(javaDir).matching { include '**/*.java' }.files
+            .findAll { it.getText('UTF-8').contains('net.neoforged.') }
+            .collect { javaDir.toPath().relativize(it.toPath()).toString() }.sort()
+        if (!offenders.isEmpty()) {
+            throw new GradleException("Fabric 26.3 Transport still has ${offenders.size()} NeoForge Java files:\n"
+                + offenders.take(80).join('\n'))
+        }
+    }
+}
+tasks.named('jar') { dependsOn verifyTransportIsolation }
+tasks.named('check') { dependsOn verifyTransportIsolation }

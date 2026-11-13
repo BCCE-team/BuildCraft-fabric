@@ -19,6 +19,7 @@ public final class BuildCraftFabric263 implements ModInitializer {
         BCLib.bootstrap();
         BCCore.bootstrap();
         BCEnergy.bootstrap();
+        buildcraft.transport.BCTransport.bootstrap();
         // Module-dependent registries and marker caches must be finalized only
         // after the last installed BCCE gameplay module has bootstrapped.
         BCLib.finishModuleRegistration();

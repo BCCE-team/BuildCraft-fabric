@@ -11,6 +11,7 @@ public final class BuildCraftFabric263Client implements ClientModInitializer {
         buildcraft.lib.BCLibEventDist.ClientGame.setup();
         FabricCoreClient.bootstrap();
         FabricEnergyClient.bootstrap();
+        buildcraft.transport.client.FabricTransportClient.bootstrap();
         MessageManager.registerClientReceivers();
     }
 }
