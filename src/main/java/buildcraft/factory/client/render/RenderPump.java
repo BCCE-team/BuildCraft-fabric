@@ -1,0 +1,191 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.factory.client.render;
+
+import buildcraft.lib.compat.minecraft.render.BCRenderTypes;
+import buildcraft.lib.compat.minecraft.render.BCGeometryRenderer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.PoseStack.Pose;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
+
+import buildcraft.factory.BCFactorySprites;
+import buildcraft.factory.tile.TilePump;
+import buildcraft.lib.client.render.fluid.FluidRenderer;
+import buildcraft.lib.client.render.fluid.FluidSpriteType;
+import buildcraft.lib.client.render.laser.LegacyLaserBlockEntityRenderer;
+import buildcraft.lib.client.render.laser.LaserData_BC8.LaserRow;
+import buildcraft.lib.client.render.laser.LaserData_BC8.LaserType;
+import buildcraft.lib.client.render.tile.RenderPartCube;
+import buildcraft.lib.compat.minecraft.render.BCVertexBuffers;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
+import net.minecraft.world.phys.Vec3;
+
+
+public class RenderPump implements BCGeometryRenderer<TilePump>, LegacyLaserBlockEntityRenderer<TilePump> {
+    private static final int[] COLOUR_POWER = new int[16];
+    private static final int COLOUR_STATUS_ON = 0xFF_77_DD_77; // a light green
+    private static final int COLOUR_STATUS_OFF = 0xFF_1f_10_1b; // black-ish
+
+    private static final int BLOCK_LIGHT_STATUS_ON = 0xF000F0;
+    private static final int BLOCK_LIGHT_STATUS_OFF = 0x0;
+
+    private static final double POWER = 1.5 / 16.0;
+    private static final double STATUS = 3.5 / 16.0;
+    private static final double Y = 13.5 / 16.0;
+
+    private static final RenderPartCube[] LED_POWER;
+    private static final RenderPartCube[] LED_STATUS;
+
+    private static final LaserType TUBE_LASER;
+
+    static {
+        for (int i = 0; i < COLOUR_POWER.length; i++) {
+            int c = (i * 0x40) / COLOUR_POWER.length;
+            int r = (i * 0xE0) / COLOUR_POWER.length + 0x1F;
+            int colour = (0xFF << 24) + (r << 16) + (c << 8) + c;
+            COLOUR_POWER[i] = colour;
+        }
+
+        LED_POWER = new RenderPartCube[4];
+        LED_STATUS = new RenderPartCube[4];
+        for (int i = 0; i < 4; i++) {
+            Direction facing = Direction.from2DDataValue(i);
+
+            final int dX, dZ;
+            final double ledX, ledZ;
+
+            if (facing.getAxis() == Axis.X) {
+                dX = 0;
+                dZ = facing.getAxisDirection().getStep();
+                ledZ = 0.5;
+                if (facing == Direction.EAST) {
+                    ledX = 15.6 / 16.0;
+                } else {
+                    ledX = 0.4 / 16.0;
+                }
+            } else {
+                dX = -facing.getAxisDirection().getStep();
+                dZ = 0;
+                ledX = 0.5;
+                if (facing == Direction.SOUTH) {
+                    ledZ = 15.6 / 16.0;
+                } else {
+                    ledZ = 0.4 / 16.0;
+                }
+            }
+
+            LED_POWER[i] = new RenderPartCube();
+            LED_POWER[i].center.positiond(ledX + dX * POWER, Y, ledZ + dZ * POWER);
+
+            LED_STATUS[i] = new RenderPartCube();
+            LED_STATUS[i].center.positiond(ledX + dX * STATUS, Y, ledZ + dZ * STATUS);
+        }
+
+        LaserRow cap = new LaserRow(BCFactorySprites.pump_tube, 0, 8, 8, 16);
+        LaserRow middle = new LaserRow(BCFactorySprites.pump_tube, 0, 0, 16, 8);
+
+        LaserRow[] middles = { middle };
+
+        TUBE_LASER = new LaserType(cap, middle, middles, null, cap);
+    }
+    
+    public RenderPump(BlockEntityRendererProvider.Context ctx) {
+        for (int i = 0; i < 4; i++) {
+            LED_POWER[i].setWhiteTex();
+            LED_STATUS[i].setWhiteTex();
+        }
+    }
+
+    private final RenderTube tubeRenderer = new RenderTube(TUBE_LASER);
+
+    public RenderPump() {}
+
+    
+    
+    @Override
+	public void renderContents(TilePump tile, float partialTicks, PoseStack matrix, BCVertexBuffers builder,
+			int combinedLight, int overlay) {
+        VertexConsumer buffer = builder.getBuffer(BCRenderTypes.cutoutMipped());
+    	Pose p = matrix.last();
+    	Matrix4f pose = p.pose();
+    	Matrix3f normalMatrix = p.normal();
+
+//    	matrix.translate(0, 0, -1);
+        float percentFilled = tile.getPercentFilledForRender();
+        int powerColour = COLOUR_POWER[(int) (percentFilled * (COLOUR_POWER.length - 1))];
+
+        boolean complete = tile.isComplete();
+        int statusColour = complete ? COLOUR_STATUS_OFF : COLOUR_STATUS_ON;
+        int statusLight = complete ? BLOCK_LIGHT_STATUS_OFF : BLOCK_LIGHT_STATUS_ON;
+
+        for (int i = 0; i < 4; i++) {
+            // Get the light level of a direction
+
+            Direction dir = Direction.from2DDataValue(i);
+            BlockPos pos = tile.getBlockPos().relative(dir);
+            int block = (combinedLight >> 4) & 0xF;
+            int sky = (combinedLight >> 20) & 0xF;
+
+            LED_POWER[i].center.colouri(powerColour);
+            LED_STATUS[i].center.colouri(statusColour);
+
+            LED_POWER[i].center.lightf(percentFilled > 0.01 ? 1 : 0, 0);
+            // lighti(block, sky) takes levels 0..15, NOT a packed 0xF000F0 lightmap.
+            LED_STATUS[i].center.lighti(complete ? block : 15, complete ? sky : 15);
+
+            LED_POWER[i].render(pose, normalMatrix, buffer);
+            LED_STATUS[i].render(pose, normalMatrix, buffer);
+
+        }
+
+        var pumpedFluid = tile.getFluidStackForRender();
+        if (!pumpedFluid.isEmpty()) {
+            VertexConsumer fluidBuffer = builder.getBuffer(BCRenderTypes.translucent());
+            FluidRenderer.renderFluid(
+                FluidSpriteType.STILL, pumpedFluid, pumpedFluid.getAmount(), tile.getFluidCapacityForRender(),
+                new Vec3(5.5 / 16.0, 4.0 / 16.0, 5.5 / 16.0),
+                new Vec3(10.5 / 16.0, 12.0 / 16.0, 10.5 / 16.0),
+                fluidBuffer, p, null, combinedLight
+            );
+        }
+
+        renderLasers(tile, partialTicks, matrix, builder, statusLight, overlay);
+
+		
+	}
+
+    @Override
+    public void renderLasers(TilePump tile, float partialTicks, PoseStack matrix, BCVertexBuffers builder,
+            int combinedLight, int overlay) {
+        tubeRenderer.renderLasers(tile, partialTicks, matrix, builder, combinedLight, overlay);
+    }
+
+
+    @Override
+	public boolean renderOffScreen() {
+		return true;
+	}
+
+    @Override
+	public int getViewDistance() {
+		return 256;
+	}
+
+    @Override
+	public boolean shouldRender(TilePump tile, Vec3 cameraPos) {
+		return true;
+	}
+
+    public static void init() {
+        //force the static block to run before texture stitching
+    }
+}

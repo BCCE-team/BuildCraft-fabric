@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IRI",
+    "GMG",
+    "IDI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone",
+    "G": "buildcraftcore:gears/gear_gold",
+    "M": "minecraft:map",
+    "D": "buildcraftcore:gears/gear_diamond"
+  },
+  "result": {
+    "id": "buildcraftrobotics:zone_planner"
+  }
+}

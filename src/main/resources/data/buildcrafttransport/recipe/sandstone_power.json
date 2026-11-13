@@ -1,0 +1,10 @@
+{
+  "type": "buildcrafttransport:pipe",
+  "mode": "upgrade",
+  "group": "buildcrafttransport:pipe_upgrades",
+  "from": "buildcrafttransport:sandstone_item",
+  "additional": "minecraft:redstone",
+  "result": {
+    "item": "buildcrafttransport:sandstone_power"
+  }
+}

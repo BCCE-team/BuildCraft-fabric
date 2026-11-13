@@ -1,0 +1,184 @@
+package buildcraft.robotics.ai;
+
+import buildcraft.lib.internal.core.BlockIndex;
+import buildcraft.api.v2.OperationMode;
+import buildcraft.api.v2.permission.WorldOperationKind;
+import buildcraft.api.v2.automation.BreakBlockRequest;
+import buildcraft.robotics.internal.legacy.robots.AIRobot;
+import buildcraft.robotics.internal.legacy.robots.EntityRobotBase;
+import buildcraft.lib.misc.BlockUtil;
+import buildcraft.lib.misc.FakePlayerProvider;
+import buildcraft.robotics.entity.EntityRobot;
+import buildcraft.robotics.internal.api2.RobotAutomationSupport;
+import com.mojang.authlib.GameProfile;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import buildcraft.lib.compat.NbtCompat;
+
+public class AIRobotBreak extends AIRobot {
+    private BlockIndex blockToBreak;
+    private float blockDamage;
+    private String progressStateKey;
+    private BlockState state;
+    private float hardness;
+    private float speed;
+
+    public AIRobotBreak(EntityRobotBase robot) {
+        super(robot);
+    }
+
+    public AIRobotBreak(EntityRobotBase robot, BlockIndex blockToBreak) {
+        this(robot);
+        this.blockToBreak = blockToBreak;
+    }
+
+    public void start() {
+        if (blockToBreak == null) {
+            setSuccess(false);
+            terminate();
+            return;
+        }
+        robot.aimItemAt(blockToBreak.x, blockToBreak.y, blockToBreak.z);
+        robot.setItemActive(true);
+        refreshBlockData();
+    }
+
+    public void update() {
+        if (!(robot.level() instanceof ServerLevel serverLevel) || blockToBreak == null) {
+            setSuccess(false);
+            terminate();
+            return;
+        }
+        BlockPos pos = blockToBreak.toBlockPos();
+        if (state == null || serverLevel.getBlockState(pos).isAir() || serverLevel.getBlockState(pos) != state) {
+            refreshBlockData();
+        }
+        if (state == null || state.isAir() || hardness < 0.0F) {
+            setSuccess(false);
+            terminate();
+            return;
+        }
+
+        if (!RobotAutomationSupport.permits(new BreakBlockRequest(
+                serverLevel, robot.blockPosition(), pos, RobotAutomationSupport.actor(robot), OperationMode.SIMULATE))) {
+            setSuccess(false);
+            terminate();
+            return;
+        }
+
+        if (hardness != 0.0F) {
+            blockDamage += speed / hardness / 30.0F;
+        } else {
+            blockDamage = 1.1F;
+        }
+
+        if (blockDamage > 1.0F) {
+            serverLevel.destroyBlockProgress(robot.getId(), pos, -1);
+            blockDamage = 0.0F;
+            // Permission evaluation must not invoke the API v2 BREAK_BLOCK executor here:
+            // it would destroy the target with an EMPTY tool before our real harvest.
+            if (!RobotAutomationSupport.permitsBlock(
+                    robot, serverLevel, pos, WorldOperationKind.BLOCK_BREAK, OperationMode.EXECUTE)) {
+                setSuccess(false);
+                terminate();
+                return;
+            }
+            ItemStack held = robot.getItemBySlot(EquipmentSlot.MAINHAND);
+            GameProfile owner = robot instanceof EntityRobot entityRobot
+                    ? entityRobot.getOwnerProfile()
+                    : FakePlayerProvider.NULL_PROFILE;
+            boolean harvested = BlockUtil.harvestBlock(serverLevel, pos, held, owner);
+            if (harvested) {
+                serverLevel.levelEvent(null, 2001, pos, Block.getId(state));
+                if (held.isEmpty()) {
+                    robot.setItemInUse(ItemStack.EMPTY);
+                }
+            } else {
+                setSuccess(false);
+            }
+            terminate();
+        } else {
+            serverLevel.destroyBlockProgress(robot.getId(), pos, (int) (blockDamage * 10.0F) - 1);
+        }
+    }
+
+    private void refreshBlockData() {
+        BlockPos pos = blockToBreak.toBlockPos();
+        BlockState newState = robot.level().getBlockState(pos);
+        String newStateKey = newState.toString();
+        if (blockDamage > 0.0F && progressStateKey != null && !progressStateKey.equals(newStateKey)) {
+            blockDamage = 0.0F;
+        }
+        state = newState;
+        progressStateKey = newStateKey;
+        if (state == null || state.isAir()) {
+            hardness = -1.0F;
+            speed = 0.0F;
+            return;
+        }
+        hardness = state.getDestroySpeed(robot.level(), pos);
+        speed = getBreakSpeed(robot.getItemBySlot(EquipmentSlot.MAINHAND), state);
+    }
+
+    private float getBreakSpeed(ItemStack stack, BlockState state) {
+        float result = stack.isEmpty() ? 1.0F : stack.getDestroySpeed(state);
+        if (result > 1.0F && !stack.isEmpty()) {
+            int efficiency = EnchantmentHelper.getItemEnchantmentLevel(
+                robot.level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.EFFICIENCY),
+                stack
+            );
+            if (efficiency > 0) {
+                result += efficiency * efficiency + 1;
+            }
+        }
+        return Math.max(0.0F, result);
+    }
+
+    public void end() {
+        robot.setItemActive(false);
+        if (blockToBreak != null && robot.level() instanceof ServerLevel serverLevel) {
+            serverLevel.destroyBlockProgress(robot.getId(), blockToBreak.toBlockPos(), -1);
+        }
+    }
+
+    public int getEnergyCost() {
+        return 8;
+    }
+
+    public boolean canLoadFromNBT() {
+        return true;
+    }
+
+    public void writeSelfToNBT(CompoundTag nbt) {
+        if (blockToBreak != null) {
+            CompoundTag tag = new CompoundTag();
+            blockToBreak.writeTo(tag);
+            nbt.put("blockToBreak", tag);
+        }
+        if (blockDamage > 0.0F && progressStateKey != null) {
+            nbt.putFloat("blockDamage", blockDamage);
+            nbt.putString("progressState", progressStateKey);
+        }
+    }
+
+    public void loadSelfFromNBT(CompoundTag nbt) {
+        if (nbt.contains("blockToBreak")) {
+            blockToBreak = new BlockIndex(NbtCompat.getCompound(nbt, "blockToBreak"));
+        }
+        if (nbt.contains("blockDamage") && nbt.contains("progressState")) {
+            blockDamage = Math.max(0.0F, NbtCompat.getFloat(nbt, "blockDamage"));
+            progressStateKey = NbtCompat.getString(nbt, "progressState");
+        } else {
+            blockDamage = 0.0F;
+            progressStateKey = null;
+        }
+    }
+}

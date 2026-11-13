@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OTO",
+    "OCO",
+    "ORO"
+  ],
+  "key": {
+    "O": "minecraft:obsidian",
+    "T": "minecraft:crafting_table",
+    "C": "minecraft:chest",
+    "R": "buildcraftsilicon:redstone_chipset/red"
+  },
+  "result": {
+    "id": "buildcraftsilicon:advanced_crafting_table"
+  }
+}

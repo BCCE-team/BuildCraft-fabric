@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "g": "minecraft:gravel",
+    "m": "minecraft:cobblestone"
+  },
+  "pattern": [
+    "mgm"
+  ],
+  "result": {
+    "count": 8,
+    "id": "buildcrafttransport:structure"
+  }
+}

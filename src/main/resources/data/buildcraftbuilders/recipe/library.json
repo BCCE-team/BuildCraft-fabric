@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "igi",
+    "bBb",
+    "iri"
+  ],
+  "key": {
+    "i": "minecraft:iron_ingot",
+    "g": "buildcraftcore:gears/gear_iron",
+    "b": "minecraft:bookshelf",
+    "B": "buildcraftbuilders:blueprint",
+    "r": "minecraft:redstone"
+  },
+  "result": {
+    "id": "buildcraftbuilders:library"
+  }
+}

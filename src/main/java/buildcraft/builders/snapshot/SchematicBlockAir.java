@@ -1,0 +1,64 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.builders.snapshot;
+
+import buildcraft.lib.internal.core.InvalidInputDataException;
+import buildcraft.builders.internal.schematic.legacy.ISchematicBlock;
+import buildcraft.builders.internal.schematic.legacy.SchematicBlockContext;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Rotation;
+
+public final class SchematicBlockAir implements ISchematicBlock {
+    @SuppressWarnings("unused")
+    public static boolean predicate(SchematicBlockContext context) {
+        return true;
+    }
+
+    public void init(SchematicBlockContext context) {
+    }
+
+    public boolean isAir() {
+        return true;
+    }
+
+    public SchematicBlockAir getRotated(Rotation rotation) {
+        return SchematicBlockManager.createCleanCopy(this);
+    }
+
+    public boolean canBuild(Level Level, BlockPos blockPos) {
+        return false;
+    }
+
+    public boolean build(Level Level, BlockPos blockPos) {
+        return true;
+    }
+
+    public boolean buildWithoutChecks(Level Level, BlockPos blockPos) {
+        return true;
+    }
+
+    public boolean isBuilt(Level Level, BlockPos blockPos) {
+        return true;
+    }
+
+    public CompoundTag serializeNBT() {
+        return new CompoundTag();
+    }
+
+    public void deserializeNBT(CompoundTag nbt) throws InvalidInputDataException {
+    }
+
+    public boolean equals(Object o) {
+        return this == o || !(o == null || getClass() != o.getClass());
+    }
+
+    public int hashCode() {
+        return 0;
+    }
+}

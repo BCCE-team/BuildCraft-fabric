@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "waterlogged=false": {
+      "model": "buildcrafttransport:block/filtered_buffer"
+    },
+    "waterlogged=true": {
+      "model": "buildcrafttransport:block/filtered_buffer"
+    }
+  }
+}

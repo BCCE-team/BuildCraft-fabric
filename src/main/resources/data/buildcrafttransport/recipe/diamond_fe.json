@@ -1,0 +1,10 @@
+{
+  "type": "buildcrafttransport:pipe",
+  "mode": "upgrade",
+  "group": "buildcrafttransport:pipe_upgrades",
+  "from": "buildcrafttransport:diamond_power",
+  "additional": "minecraft:redstone",
+  "result": {
+    "item": "buildcrafttransport:diamond_fe"
+  }
+}

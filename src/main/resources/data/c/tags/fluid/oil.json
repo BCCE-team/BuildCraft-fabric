@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "buildcraftenergy:oil",
+    "buildcraftenergy:oil_flowing",
+    "buildcraftenergy:spout_oil",
+    "buildcraftenergy:spout_oil_flowing"
+  ]
+}

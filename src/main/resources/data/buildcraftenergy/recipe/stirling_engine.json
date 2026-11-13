@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "www",
+    " g ",
+    "GpG"
+  ],
+  "key": {
+    "w": "#minecraft:stone_crafting_materials",
+    "g": "minecraft:glass",
+    "G": "buildcraftcore:gears/gear_stone",
+    "p": "minecraft:piston"
+  },
+  "result": {
+    "id": "buildcraftenergy:engine_stone"
+  }
+}

@@ -1,0 +1,103 @@
+// Standalone materialization of the canonical 26.3-fabric target.
+// No Stonecutter, Python source preprocessing, repository build-logic or overlays required.
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'eclipse'
+    id 'maven-publish'
+    id 'net.fabricmc.fabric-loom' version '1.18-SNAPSHOT'
+}
+
+version = '8.0.29+26.3+fabric'
+group = 'ct.buildcraft.ce'
+base.archivesName = 'BuildCraft-Community-Edition'
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
+}
+
+repositories {
+    maven { url = 'https://maven.fabricmc.net/' }
+    mavenCentral()
+}
+
+dependencies {
+    minecraft 'com.mojang:minecraft:26.3'
+    implementation 'net.fabricmc:fabric-loader:0.19.5'
+    implementation 'net.fabricmc.fabric-api:fabric-api:0.163.0+26.3'
+    implementation 'teamreborn:energy:5.0.0'
+    compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+}
+
+// 26.3 uses the native, unmapped Minecraft distribution: no remapJar stage.
+// These auxiliary source sets match the maintained Fabric target.
+sourceSets {
+    apiV2 {
+        java.setSrcDirs(['src/main/java'])
+        java.include 'buildcraft/api/v2/**'
+        resources.setSrcDirs([])
+        compileClasspath = sourceSets.main.compileClasspath
+        runtimeClasspath = output + compileClasspath
+    }
+    libContracts {
+        java.setSrcDirs(['src/main/java'])
+        java.include 'buildcraft/lib/platform/registry/**'
+        java.include 'buildcraft/lib/platform/events/**'
+        java.include 'buildcraft/lib/net/BCNetworkSide.java'
+        java.include 'buildcraft/lib/platform/client/ClientRegistration.java'
+        java.include 'buildcraft/lib/platform/client/ClientModelProperties.java'
+        java.include 'buildcraft/lib/platform/client/ClientAtlas.java'
+        java.include 'buildcraft/lib/platform/client/PlatformClientRegistration.java'
+        resources.setSrcDirs([])
+        compileClasspath = sourceSets.main.compileClasspath
+    }
+}
+
+loom {
+    runs {
+        client {
+            client()
+            runDir = file('run/client').absolutePath
+            jvmArguments.add('--sun-misc-unsafe-memory-access=allow')
+        }
+        server {
+            server()
+            runDir = file('run/server').absolutePath
+            jvmArguments.add('--sun-misc-unsafe-memory-access=allow')
+        }
+    }
+}
+
+// Retain the original fail-closed 26.3 Fabric port guard.
+// A successful materialization does NOT imply a compilable or playable build.
+def verifyLibIsolation = tasks.register('verifyFabric263LibIsolation') {
+    group = 'verification'
+    description = 'Reject NeoForge references in materialized Fabric lib source'
+    doLast {
+        def javaDir = file('src/main/java/buildcraft/lib')
+        def offenders = fileTree(javaDir).matching { include '**/*.java' }.files
+            .findAll { it.getText('UTF-8').contains('net.neoforged.') }
+            .collect { javaDir.toPath().relativize(it.toPath()).toString() }.sort()
+        if (!offenders.isEmpty()) {
+            throw new GradleException("Fabric 26.3 lib still has ${offenders.size()} NeoForge-owned Java files:\n"
+                + offenders.take(80).join('\n'))
+        }
+    }
+}
+tasks.named('jar') { dependsOn verifyLibIsolation }
+tasks.named('check') { dependsOn verifyLibIsolation }
+tasks.named('test', Test) { useJUnitPlatform() }
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+    options.compilerArgs.addAll(['-Xmaxerrs', '800'])
+}
+
+tasks.register('buildAndCollect') {
+    group = 'build'
+    description = 'Build Minecraft 26.3 Fabric after lib isolation is solved'
+    dependsOn tasks.named('build')
+}

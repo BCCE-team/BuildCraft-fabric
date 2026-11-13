@@ -1,0 +1,141 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.transport.statements;
+
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import buildcraft.lib.internal.core.render.ISprite;
+import buildcraft.transport.internal.gate.IGate;
+import buildcraft.lib.internal.statement.IStatement;
+import buildcraft.lib.internal.statement.IStatementContainer;
+import buildcraft.lib.internal.statement.IStatementParameter;
+import buildcraft.lib.internal.statement.StatementMouseClick;
+import buildcraft.lib.misc.ColourUtil;
+import buildcraft.lib.misc.LocaleUtil;
+import buildcraft.lib.misc.StackUtil;
+import buildcraft.transport.BCTransportSprites;
+
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import buildcraft.lib.compat.NbtCompat;
+
+public class ActionParameterSignal implements IStatementParameter {
+
+    public static final ActionParameterSignal EMPTY = new ActionParameterSignal(null);
+    private static final Map<DyeColor, ActionParameterSignal> SIGNALS;
+
+    static {
+        SIGNALS = new EnumMap<>(DyeColor.class);
+        for (DyeColor colour : ColourUtil.COLOURS) {
+            SIGNALS.put(colour, new ActionParameterSignal(colour));
+        }
+    }
+
+    @Nullable
+    public final DyeColor colour;
+
+    private ActionParameterSignal(DyeColor colour) {
+        this.colour = colour;
+    }
+
+    public static ActionParameterSignal get(DyeColor colour) {
+        return colour == null ? EMPTY : SIGNALS.get(colour);
+    }
+
+    public static ActionParameterSignal readFromNbt(CompoundTag nbt) {
+        if (NbtCompat.contains(nbt, "color", 99)) {
+            return get(DyeColor.byId(NbtCompat.getByte(nbt, "color")));
+        }
+        return EMPTY;
+    }
+
+    public void writeToNbt(CompoundTag nbt) {
+        DyeColor c = colour;
+        if (c != null) {
+            nbt.putByte("color", (byte) c.getId());
+        }
+    }
+
+    @Nullable
+    public DyeColor getColor() {
+        return colour;
+    }
+
+    public ISprite getSprite() {
+        DyeColor c = colour;
+        if (c == null) {
+            return null;
+        } else {
+            return BCTransportSprites.getPipeSignal(true, c);
+        }
+    }
+
+    public ActionParameterSignal onClick(IStatementContainer source, IStatement stmt, ItemStack stack,
+        StatementMouseClick mouse) {
+        return null;
+    }
+
+    public boolean equals(Object object) {
+        if (object instanceof ActionParameterSignal) {
+            ActionParameterSignal param = (ActionParameterSignal) object;
+
+            return param.getColor() == getColor();
+        } else {
+            return false;
+        }
+    }
+
+    public int hashCode() {
+        return Objects.hash(getColor());
+    }
+
+    public Component getDescription() {
+        if (colour == null) {
+            return Component.empty();
+        }
+        return Component.translatable("gate.action.pipe.wire", LocaleUtil.localizeColourComponent(colour));
+    }
+
+    public String getUniqueTag() {
+        return "buildcraft:pipeWireAction";
+    }
+
+    public IStatementParameter rotateLeft() {
+        return this;
+    }
+
+    @Nonnull
+    public ItemStack getItemStack() {
+        return StackUtil.EMPTY;
+    }
+
+    public IStatementParameter[] getPossible(IStatementContainer source) {
+        if (!(source instanceof IGate)) {
+            return null;
+        }
+        IGate gate = (IGate) source;
+        List<IStatementParameter> poss = new ArrayList<>(1 + ColourUtil.COLOURS.length);
+        poss.add(EMPTY);
+        for (DyeColor c : ColourUtil.COLOURS) {
+            if (TriggerPipeSignal.doesGateHaveColour(gate, c)) {
+                poss.add(get(c));
+            }
+        }
+        return poss.toArray(new IStatementParameter[poss.size()]);
+    }
+}

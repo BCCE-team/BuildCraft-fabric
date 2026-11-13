@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OIO",
+    "OCO",
+    "OGO"
+  ],
+  "key": {
+    "O": "minecraft:obsidian",
+    "I": "minecraft:iron_ingot",
+    "C": "buildcraftsilicon:redstone_chipset/red",
+    "G": "buildcraftcore:gears/gear_gold"
+  },
+  "result": {
+    "id": "buildcraftsilicon:charging_table"
+  }
+}

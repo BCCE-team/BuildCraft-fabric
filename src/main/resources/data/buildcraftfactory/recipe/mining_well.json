@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "a": "minecraft:iron_pickaxe",
+    "g": "buildcraftcore:gears/gear_iron",
+    "i": "minecraft:iron_ingot",
+    "r": "minecraft:redstone"
+  },
+  "pattern": [
+    "iri",
+    "igi",
+    "iai"
+  ],
+  "result": {
+    "id": "buildcraftfactory:mining_well"
+  }
+}

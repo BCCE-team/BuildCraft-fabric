@@ -1,0 +1,142 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.silicon.item;
+
+import javax.annotation.Nonnull;
+import java.util.function.Consumer;
+
+import buildcraft.transport.internal.IItemPluggable;
+import buildcraft.transport.internal.pipe.IFlowItems;
+import buildcraft.transport.internal.pipe.IPipe;
+import buildcraft.transport.internal.pipe.IPipeHolder;
+import buildcraft.transport.internal.pluggable.PipePluggable;
+import buildcraft.transport.internal.pluggable.PluggableDefinition;
+import buildcraft.lib.item.ICreativeTabItemProvider;
+import buildcraft.lib.misc.ItemStackUtil;
+import buildcraft.lib.misc.SoundUtil;
+import buildcraft.silicon.BCSiliconPlugs;
+import buildcraft.silicon.plug.PluggableLens;
+import buildcraft.transport.pipe.Pipe;
+import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import buildcraft.lib.compat.NbtCompat;
+import buildcraft.lib.compat.RegistryCompat;
+
+public class ItemPluggableLens extends Item implements IItemPluggable, ICreativeTabItemProvider {
+    public ItemPluggableLens() {
+        super(RegistryCompat.itemProperties(new Item.Properties()));
+      //  setMaxDamage(0);
+        //setHasSubtypes(true);
+    }
+
+    public static LensData getData(ItemStack stack) {
+        return new LensData(stack);
+    }
+
+    @Nonnull
+    public ItemStack getStack(DyeColor colour, boolean isFilter) {
+        return getStack(new LensData(colour, isFilter));
+    }
+
+    @Nonnull
+    public ItemStack getStack(LensData variant) {
+        ItemStack stack = new ItemStack(this);
+        variant.writeToStack(stack);
+        return stack;
+    }
+
+    public PipePluggable onPlace(@Nonnull ItemStack stack, IPipeHolder holder, Direction side, Player player,
+        InteractionHand hand) {
+        IPipe pipe = holder.getPipe();
+        if (pipe == Pipe.EMPTY || !(pipe.getFlow() instanceof IFlowItems)) {
+            return PipePluggable.EMPTY;
+        }
+        LensData data = getData(stack);
+        SoundUtil.playBlockPlace(holder.getPipeWorld(), holder.getPipePos(), Blocks.STONE.defaultBlockState());
+        PluggableDefinition def = BCSiliconPlugs.lens;
+        return new PluggableLens(def, holder, side, data.colour, data.isFilter);
+    }
+
+    public net.minecraft.network.chat.Component getName(ItemStack stack) {
+        return net.minecraft.network.chat.Component.translatable(getDescriptionId(stack));
+    }
+
+	public String getDescriptionId(ItemStack stack) {
+        LensData data = getData(stack);
+        String colour = data.colour == null ? "clear" : data.colour.getName();
+        String first = data.isFilter ? "item.filter." : "item.lens.";
+        return first+colour;
+	}
+
+/*	@Override
+    public FontRenderer getFontRenderer(ItemStack stack) {
+        return SpecialColourFontRenderer.INSTANCE;
+    }*/
+
+    public void addCreativeTabItems(Consumer<ItemStack> output) {
+        for (int i = 0; i < 34; i++) {
+            output.accept(getStack(new LensData(i)));
+        }
+    }
+
+	public static class LensData {
+        public final DyeColor colour;
+        public final boolean isFilter;
+
+        public LensData(DyeColor colour, boolean isFilter) {
+            this.colour = colour;
+            this.isFilter = isFilter;
+        }
+
+        public LensData(ItemStack stack) {
+            this(readLegacyMetadata(stack));
+        }
+
+        private static int readLegacyMetadata(ItemStack stack) {
+            CompoundTag data = ItemStackUtil.getCustomDataOrNull(stack);
+            if (data != null && data.contains("Damage")) {
+                return NbtCompat.getInt(data, "Damage");
+            }
+            // Compatibility fallback for 1.21.1 stacks that use the legacy component layout.
+            return stack.getDamageValue();
+        }
+
+        public LensData(int damage) {
+            if (damage >= 32) {
+                colour = null;
+                isFilter = damage == 33;
+            } else {
+                colour = DyeColor.byId(damage & 15);
+                isFilter = damage >= 16;
+            }
+        }
+
+        public int getItemDamage() {
+            if (colour == null) {
+                return isFilter ? 33 : 32;
+            } else {
+                return colour.getId() + (isFilter ? 16 : 0);
+            }
+        }
+
+        public ItemStack writeToStack(ItemStack stack) {
+            CompoundTag data = ItemStackUtil.getCustomData(stack);
+            data.putInt("Damage", getItemDamage());
+            ItemStackUtil.setCustomData(stack, data);
+            // The lens is not damageable: minecraft:damage would be clamped/normalised and variants collapse.
+            stack.remove(DataComponents.DAMAGE);
+            return stack;
+        }
+    }
+}

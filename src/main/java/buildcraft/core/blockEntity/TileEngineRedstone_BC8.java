@@ -1,0 +1,99 @@
+/* Copyright (c) 2016 SpaceToad and the BuildCraft team
+ * 
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+package buildcraft.core.blockEntity;
+
+import buildcraft.api.v2.energy.MjAmount;
+
+import javax.annotation.Nonnull;
+
+import buildcraft.lib.internal.mj.IMjConnector;
+import buildcraft.core.BCCoreBlocks;
+import buildcraft.lib.misc.AdvancementUtil;
+import net.minecraft.resources.Identifier;
+import buildcraft.lib.compat.GameProfileCompat;
+
+import buildcraft.lib.engine.EngineConnector;
+import buildcraft.lib.engine.TileEngineBase_BC8;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+
+public class TileEngineRedstone_BC8 extends TileEngineBase_BC8 {
+    private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftcore:free_power");
+    private boolean givenAdvancement = false;
+
+    public TileEngineRedstone_BC8(BlockPos pos, BlockState state) {
+    	super(BCCoreBlocks.ENGINE_REDSTONE_TILE_BC8.get(), pos, state);
+    }
+
+    @Nonnull
+    protected IMjConnector createConnector() {
+        return new EngineConnector(false);
+    }
+
+    public boolean isBurning() {
+        return isRedstonePowered;
+    }
+
+    protected void engineUpdate() {
+        super.engineUpdate();
+        if (isRedstonePowered) {
+            addPower(getCurrentOutput());
+            if (level.getGameTime() % 16 == 0) {
+                if (getHeatLevel() < 0.8) {
+                    heat += 4;
+                }
+                if (isPumping && !givenAdvancement && getOwner() != null && !level.isClientSide()) {
+                    // Retry while the owner is offline rather than marking the achievement as granted.
+                    givenAdvancement = AdvancementUtil.unlockAdvancement(GameProfileCompat.id(getOwner()), ADVANCEMENT);
+                }
+            }
+        } else {
+            power = 0;
+        }
+    }
+
+    public double getPistonSpeed() {
+        return super.getPistonSpeed() / 2;
+    }
+
+    public void updateHeatLevel() {
+        if (heat > MIN_HEAT) {
+            heat -= 0.2f;
+            if (heat < MIN_HEAT) {
+                heat = MIN_HEAT;
+            }
+        }
+    }
+
+    protected int getMaxChainLength() {
+        return 0;
+    }
+
+    public long getMaxPower() {
+        return MjAmount.MICRO_MJ_PER_MJ * 1;
+    }
+
+    public long minPowerReceived() {
+        return MjAmount.MICRO_MJ_PER_MJ / 10;
+    }
+
+    public long maxPowerReceived() {
+        return 4 * MjAmount.MICRO_MJ_PER_MJ;
+    }
+
+    public long maxPowerExtracted() {
+        return MjAmount.MICRO_MJ_PER_MJ;
+    }
+
+    public float explosionRange() {
+        return 0;
+    }
+
+    public long getCurrentOutput() {
+        return MjAmount.MICRO_MJ_PER_MJ / 20;
+    }
+}

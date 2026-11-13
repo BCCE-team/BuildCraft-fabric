@@ -1,0 +1,54 @@
+{
+  "variants": {
+    "facing=up,waterlogged=false": {
+      "model": "buildcraftbuilders:block/marker_construction_up"
+    },
+    "facing=up,waterlogged=true": {
+      "model": "buildcraftbuilders:block/marker_construction_up"
+    },
+    "facing=down,waterlogged=false": {
+      "model": "buildcraftbuilders:block/marker_construction_up",
+      "x": 180
+    },
+    "facing=down,waterlogged=true": {
+      "model": "buildcraftbuilders:block/marker_construction_up",
+      "x": 180
+    },
+    "facing=north,waterlogged=false": {
+      "model": "buildcraftbuilders:block/marker_construction_up",
+      "x": 90
+    },
+    "facing=north,waterlogged=true": {
+      "model": "buildcraftbuilders:block/marker_construction_up",
+      "x": 90
+    },
+    "facing=south,waterlogged=false": {
+      "model": "buildcraftbuilders:block/marker_construction_up",
+      "x": 270
+    },
+    "facing=south,waterlogged=true": {
+      "model": "buildcraftbuilders:block/marker_construction_up",
+      "x": 270
+    },
+    "facing=west,waterlogged=false": {
+      "model": "buildcraftbuilders:block/marker_construction_up",
+      "x": 270,
+      "y": 270
+    },
+    "facing=west,waterlogged=true": {
+      "model": "buildcraftbuilders:block/marker_construction_up",
+      "x": 270,
+      "y": 270
+    },
+    "facing=east,waterlogged=false": {
+      "model": "buildcraftbuilders:block/marker_construction_up",
+      "x": 270,
+      "y": 90
+    },
+    "facing=east,waterlogged=true": {
+      "model": "buildcraftbuilders:block/marker_construction_up",
+      "x": 270,
+      "y": 90
+    }
+  }
+}

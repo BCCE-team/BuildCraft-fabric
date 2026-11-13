@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "grg",
+    "r r",
+    "grg"
+  ],
+  "key": {
+    "g": "minecraft:glass",
+    "r": "minecraft:redstone"
+  },
+  "result": {
+    "id": "buildcraftcore:volume_box"
+  }
+}

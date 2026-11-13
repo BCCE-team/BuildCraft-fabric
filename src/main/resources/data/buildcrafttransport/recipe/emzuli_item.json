@@ -1,0 +1,10 @@
+{
+  "type": "buildcrafttransport:pipe",
+  "mode": "upgrade",
+  "group": "buildcrafttransport:pipe_upgrades",
+  "from": "buildcrafttransport:diamond_wood_item",
+  "additional": "minecraft:lapis_block",
+  "result": {
+    "item": "buildcrafttransport:emzuli_item"
+  }
+}

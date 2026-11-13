@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "e": "minecraft:chest",
+    "g": "buildcrafttransport:diamond_item",
+    "r": "minecraft:piston",
+    "s": "#minecraft:planks"
+  },
+  "pattern": [
+    "sgs",
+    "ses",
+    "srs"
+  ],
+  "result": {
+    "id": "buildcrafttransport:filtered_buffer"
+  }
+}

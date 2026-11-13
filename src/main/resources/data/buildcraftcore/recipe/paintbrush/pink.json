@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "paintbrush_colouring",
+  "ingredients": [
+    "buildcraftcore:paintbrush/clean",
+    "#c:dyes/pink"
+  ],
+  "result": {
+    "id": "buildcraftcore:paintbrush/pink"
+  }
+}

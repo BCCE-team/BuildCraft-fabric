@@ -1,0 +1,33 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.core.statements;
+import buildcraft.lib.internal.statement.IStatementContainer;
+import buildcraft.lib.internal.statement.IStatementParameter;
+import buildcraft.lib.internal.statement.ITriggerInternal;
+import buildcraft.core.BCCoreSprites;
+import buildcraft.lib.client.sprite.SpriteHolderRegistry.SpriteHolder;
+
+import net.minecraft.network.chat.Component;
+
+public class TriggerTrue extends BCStatement implements ITriggerInternal {
+
+    public TriggerTrue() {
+        super("buildcraftcore:trigger.true");
+    }
+
+    public SpriteHolder getSprite() {
+        return BCCoreSprites.TRIGGER_TRUE;
+    }
+
+    public boolean isTriggerActive(IStatementContainer source, IStatementParameter[] parameters) {
+        return true;
+    }
+
+    public Component getDescription() {
+        return Component.translatable("gate.trigger.true");
+    }
+}

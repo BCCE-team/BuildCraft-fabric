@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "waterlogged=false": {
+      "model": "buildcraftenergy:block/mj_dynamo"
+    },
+    "waterlogged=true": {
+      "model": "buildcraftenergy:block/mj_dynamo"
+    }
+  }
+}

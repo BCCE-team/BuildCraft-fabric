@@ -1,0 +1,9 @@
+{
+  "type": "buildcrafttransport:pipe",
+  "mode": "downgrade",
+  "group": "buildcrafttransport:pipe_upgrades",
+  "from": "buildcrafttransport:sandstone_power",
+  "result": {
+    "item": "buildcrafttransport:sandstone_item"
+  }
+}

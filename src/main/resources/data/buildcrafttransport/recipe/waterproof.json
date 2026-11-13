@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    [
+      "minecraft:slime_ball",
+      "minecraft:green_dye"
+    ]
+  ],
+  "result": {
+    "id": "buildcrafttransport:waterproof"
+  }
+}

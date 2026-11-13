@@ -1,0 +1,8 @@
+{
+    "textures": {
+        "particle": "#side",
+        "back":"buildcraftcore:blocks/engine/wood/back",
+        "side":"buildcraftcore:blocks/engine/wood/side"
+    },
+    "parent":"buildcraftlib:item/engine_base"
+}

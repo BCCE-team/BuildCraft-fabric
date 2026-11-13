@@ -1,0 +1,9 @@
+{
+  "type": "buildcrafttransport:pipe",
+  "mode": "downgrade",
+  "group": "buildcrafttransport:pipe_upgrades",
+  "from": "buildcrafttransport:wood_power",
+  "result": {
+    "item": "buildcrafttransport:wood_item"
+  }
+}

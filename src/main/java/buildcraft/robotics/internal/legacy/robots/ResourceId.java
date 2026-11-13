@@ -1,0 +1,48 @@
+/**
+ * Copyright (c) 2011-2017, SpaceToad and the BuildCraft Team
+ * http://www.mod-buildcraft.com
+ *
+ * The BuildCraft API is distributed under the terms of the MIT License.
+ */
+package buildcraft.robotics.internal.legacy.robots;
+
+import javax.annotation.Nullable;
+
+import net.minecraft.nbt.CompoundTag;
+import buildcraft.lib.compat.NbtCompat;
+
+public abstract class ResourceId {
+    protected ResourceId() {
+    }
+
+    public void writeToNBT(CompoundTag nbt) {
+        nbt.putString("resourceName", RobotManager.getResourceIdName(getClass()));
+    }
+
+    protected void readFromNBT(CompoundTag nbt) {
+    }
+
+    @Nullable
+    public static ResourceId load(CompoundTag nbt) {
+        try {
+            Class<?> cls;
+            if (nbt.contains("class")) {
+                cls = RobotManager.getResourceIdByLegacyClassName(NbtCompat.getString(nbt, "class"));
+            } else {
+                cls = RobotManager.getResourceIdByName(NbtCompat.getString(nbt, "resourceName"));
+            }
+
+            if (cls == null) {
+                return null;
+            }
+
+            ResourceId id = (ResourceId) cls.getDeclaredConstructor().newInstance();
+            id.readFromNBT(nbt);
+            return id;
+        } catch (Throwable throwable) {
+            buildcraft.lib.internal.debug.BCLog.logger.warn("Failed to load robot resource id from NBT", throwable);
+        }
+
+        return null;
+    }
+}

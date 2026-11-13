@@ -1,0 +1,10 @@
+{
+  "type": "buildcrafttransport:pipe",
+  "mode": "upgrade",
+  "group": "buildcrafttransport:pipe_upgrades",
+  "from": "buildcrafttransport:wood_item",
+  "additional": "buildcrafttransport:waterproof",
+  "result": {
+    "item": "buildcrafttransport:wood_fluid"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "waterlogged=false": {
+      "model": "buildcraftsilicon:block/table/programming/transparent"
+    },
+    "waterlogged=true": {
+      "model": "buildcraftsilicon:block/table/programming/transparent"
+    }
+  }
+}

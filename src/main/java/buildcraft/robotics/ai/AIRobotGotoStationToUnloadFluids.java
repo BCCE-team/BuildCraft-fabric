@@ -1,0 +1,36 @@
+package buildcraft.robotics.ai;
+
+import buildcraft.robotics.internal.legacy.robots.AIRobot;
+import buildcraft.robotics.internal.legacy.robots.DockingStation;
+import buildcraft.robotics.internal.legacy.robots.EntityRobotBase;
+import buildcraft.robotics.IStationFilter;
+
+public class AIRobotGotoStationToUnloadFluids extends AIRobot {
+    private boolean requireAcceptAction;
+
+    public AIRobotGotoStationToUnloadFluids(EntityRobotBase robot) {
+        super(robot);
+    }
+
+    public AIRobotGotoStationToUnloadFluids(EntityRobotBase robot, boolean requireAcceptAction) {
+        this(robot);
+        this.requireAcceptAction = requireAcceptAction;
+    }
+
+    public void start() {
+        startDelegateAI(new AIRobotSearchAndGotoStation(robot, new StationFilter(), robot.getZoneToLoadUnload()));
+    }
+
+    public void delegateAIEnded(AIRobot ai) {
+        if (ai instanceof AIRobotSearchAndGotoStation) {
+            setSuccess(ai.success());
+            terminate();
+        }
+    }
+
+    private class StationFilter implements IStationFilter {
+        public boolean matches(DockingStation station) {
+            return AIRobotUnloadFluids.unload(robot, station, false, requireAcceptAction) > 0;
+        }
+    }
+}

@@ -1,0 +1,62 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.core.statements;
+
+import buildcraft.lib.internal.statement.IStatement;
+import buildcraft.lib.internal.statement.IStatementParameter;
+import buildcraft.lib.internal.statement.StatementManager;
+
+public abstract class BCStatement implements IStatement {
+
+    protected final String uniqueTag;
+
+    /** UniqueTag accepts multiple possible tags, use this feature to migrate to more standardised tags if needed,
+     * otherwise just pass a single string. The first passed string will be the one used when saved to disk.
+     *
+     * @param uniqueTag */
+    public BCStatement(String... uniqueTag) {
+        this.uniqueTag = uniqueTag[0];
+        for (String tag : uniqueTag) {
+            StatementManager.statements.put(tag, this);
+        }
+    }
+
+    public String getUniqueTag() {
+        return uniqueTag;
+    }
+
+    public int maxParameters() {
+        return 0;
+    }
+
+    public int minParameters() {
+        return 0;
+    }
+
+    public IStatement rotateLeft() {
+        return this;
+    }
+
+    public IStatement[] getPossible() {
+        return new IStatement[] { this };
+    }
+
+    public IStatementParameter createParameter(int index) {
+        return null;
+    }
+
+    protected static <P extends IStatementParameter> P getParam(int index, IStatementParameter[] params, P _default) {
+        if (params == null || params.length <= index) {
+            return _default;
+        }
+        IStatementParameter atIndex = params[index];
+        if (atIndex != null && atIndex.getClass() == _default.getClass()) {
+            return (P) atIndex;
+        }
+        return _default;
+    }
+}

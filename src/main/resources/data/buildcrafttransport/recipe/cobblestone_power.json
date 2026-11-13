@@ -1,0 +1,10 @@
+{
+  "type": "buildcrafttransport:pipe",
+  "mode": "upgrade",
+  "group": "buildcrafttransport:pipe_upgrades",
+  "from": "buildcrafttransport:cobblestone_item",
+  "additional": "minecraft:redstone",
+  "result": {
+    "item": "buildcrafttransport:cobblestone_power"
+  }
+}

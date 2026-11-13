@@ -1,0 +1,61 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.factory.client.render;
+
+import buildcraft.factory.tile.TileMiner;
+import buildcraft.lib.client.render.laser.LegacyLaserBlockEntityRenderer;
+import buildcraft.lib.client.render.laser.LaserData_BC8;
+import buildcraft.lib.client.render.laser.LaserData_BC8.LaserType;
+import buildcraft.lib.client.render.laser.LaserRenderer_BC8;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.PoseStack.Pose;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
+
+import buildcraft.lib.compat.minecraft.render.BCVertexBuffers;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import buildcraft.lib.compat.RenderCompat;
+
+public class RenderTube implements buildcraft.lib.client.render.compat.LegacyBlockEntityRenderer<TileMiner>, LegacyLaserBlockEntityRenderer<TileMiner> {
+    private final LaserType laserType;
+
+    public RenderTube(LaserType laserType) {
+        this.laserType = laserType;
+    }
+
+	public void render(TileMiner tile, float partialTicks, PoseStack matrix, BCVertexBuffers builder,
+			int light, int overlay) {
+		renderLasers(tile, partialTicks, matrix, builder, light, overlay);
+	}
+
+	public void renderLasers(TileMiner tile, float partialTicks, PoseStack matrix, BCVertexBuffers builder,
+			int light, int overlay) {
+        if (tile.isComplete()) {
+            return;
+        }
+        matrix.pushPose();
+        VertexConsumer buffer = builder.getBuffer(RenderCompat.solid());
+        matrix.translate(0.5f, 0.49f, 0.5f);
+        Pose p = matrix.last();
+        Matrix4f pose = p.pose();
+        Matrix3f normal = p.normal();
+
+        BlockPos pos = tile.getBlockPos();
+        Vec3 start = new Vec3(0.5+pos.getX(), 0+pos.getY(), 0.5+pos.getZ());
+        Vec3 end = new Vec3(0.5+pos.getX(), pos.getY()-tile.getLength(partialTicks), 0.5+pos.getZ());
+        LaserData_BC8 data = new LaserData_BC8(laserType, start, end, 1 / 16.0);
+        LaserRenderer_BC8.renderLaserDynamic(pose, normal, data, buffer);
+
+        matrix.popPose();
+	}
+}
+

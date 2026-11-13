@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "e": "buildcraftcore:gears/gear_iron",
+    "g": "minecraft:glass",
+    "i": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "iei",
+    "ggg",
+    "iei"
+  ],
+  "result": {
+    "id": "buildcraftfactory:heat_exchange"
+  }
+}

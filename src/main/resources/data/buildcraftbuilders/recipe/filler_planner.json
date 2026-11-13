@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "igi",
+    "prp",
+    "igi"
+  ],
+  "key": {
+    "i": "minecraft:iron_ingot",
+    "g": "buildcraftcore:gears/gear_gold",
+    "p": "minecraft:paper",
+    "r": "minecraft:redstone"
+  },
+  "result": {
+    "id": "buildcraftbuilders:filler_planner"
+  }
+}

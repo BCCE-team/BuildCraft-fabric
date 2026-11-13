@@ -1,0 +1,51 @@
+package buildcraft.robotics.ai;
+
+import buildcraft.robotics.internal.legacy.robots.AIRobot;
+import buildcraft.robotics.internal.legacy.robots.DockingStation;
+import buildcraft.robotics.internal.legacy.robots.EntityRobotBase;
+
+public class AIRobotGotoStationAndUnload extends AIRobot {
+    private DockingStation station;
+    private boolean requireAcceptAction;
+
+    public AIRobotGotoStationAndUnload(EntityRobotBase robot) {
+        super(robot);
+    }
+
+    public AIRobotGotoStationAndUnload(EntityRobotBase robot, boolean requireAcceptAction) {
+        this(robot);
+        this.requireAcceptAction = requireAcceptAction;
+    }
+
+    public AIRobotGotoStationAndUnload(EntityRobotBase robot, DockingStation station) {
+        super(robot);
+        this.station = station;
+    }
+
+    public AIRobotGotoStationAndUnload(EntityRobotBase robot, DockingStation station, boolean requireAcceptAction) {
+        this(robot, station);
+        this.requireAcceptAction = requireAcceptAction;
+    }
+
+    public void start() {
+        if (station == null) {
+            startDelegateAI(new AIRobotGotoStationToUnload(robot, requireAcceptAction));
+        } else {
+            startDelegateAI(new AIRobotGotoStation(robot, station));
+        }
+    }
+
+    public void delegateAIEnded(AIRobot ai) {
+        if (ai instanceof AIRobotGotoStationToUnload || ai instanceof AIRobotGotoStation) {
+            if (ai.success()) {
+                startDelegateAI(new AIRobotUnload(robot, requireAcceptAction));
+            } else {
+                setSuccess(false);
+                terminate();
+            }
+        } else if (ai instanceof AIRobotUnload) {
+            setSuccess(ai.success());
+            terminate();
+        }
+    }
+}

@@ -1,0 +1,10 @@
+{
+  "type": "buildcrafttransport:pipe",
+  "mode": "upgrade",
+  "group": "buildcrafttransport:pipe_upgrades",
+  "from": "buildcrafttransport:clay_item",
+  "additional": "buildcrafttransport:waterproof",
+  "result": {
+    "item": "buildcrafttransport:clay_fluid"
+  }
+}

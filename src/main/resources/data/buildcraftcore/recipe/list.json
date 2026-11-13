@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "prp",
+    "pgp",
+    "ppp"
+  ],
+  "key": {
+    "p": "minecraft:paper",
+    "r": "minecraft:redstone",
+    "g": "minecraft:green_dye"
+  },
+  "result": {
+    "id": "buildcraftcore:list"
+  }
+}

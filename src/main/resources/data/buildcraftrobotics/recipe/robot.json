@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PPP",
+    "PRP",
+    "C C"
+  ],
+  "key": {
+    "P": "minecraft:iron_ingot",
+    "R": "buildcraftsilicon:redstone_crystal",
+    "C": "buildcraftsilicon:redstone_chipset/diamond"
+  },
+  "result": {
+    "id": "buildcraftrobotics:robot"
+  }
+}

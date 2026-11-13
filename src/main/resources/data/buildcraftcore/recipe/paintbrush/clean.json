@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "g": "buildcraftcore:gears/gear_wood",
+    "i": "minecraft:string",
+    "s": "minecraft:stick",
+    "w": "minecraft:white_wool"
+  },
+  "pattern": [
+    " iw",
+    " gi",
+    "s  "
+  ],
+  "result": {
+    "id": "buildcraftcore:paintbrush/clean"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "g",
+    "b"
+  ],
+  "key": {
+    "g": "buildcraftfactory:gel",
+    "b": "minecraft:bucket"
+  },
+  "result": {
+    "id": "minecraft:water_bucket"
+  }
+}

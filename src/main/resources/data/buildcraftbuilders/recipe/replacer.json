@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "igi",
+    "brb",
+    "ici"
+  ],
+  "key": {
+    "i": "minecraft:iron_ingot",
+    "g": "buildcraftcore:gears/gear_iron",
+    "b": "minecraft:brick",
+    "r": "minecraft:redstone",
+    "c": "minecraft:chest"
+  },
+  "result": {
+    "id": "buildcraftbuilders:replacer"
+  }
+}

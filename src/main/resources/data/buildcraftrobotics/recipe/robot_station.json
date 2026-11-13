@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " I ",
+    "ICI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "C": "buildcraftsilicon:redstone_chipset/gold"
+  },
+  "result": {
+    "id": "buildcraftrobotics:robot_station"
+  }
+}

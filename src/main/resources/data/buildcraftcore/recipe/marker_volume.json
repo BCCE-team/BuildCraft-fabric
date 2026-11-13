@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "l",
+    "t"
+  ],
+  "key": {
+    "l": "minecraft:lapis_lazuli",
+    "t": "minecraft:redstone_torch"
+  },
+  "result": {
+    "id": "buildcraftcore:marker_volume"
+  }
+}

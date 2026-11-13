@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "btb",
+    "ycy",
+    "gCg"
+  ],
+  "key": {
+    "b": "minecraft:black_dye",
+    "t": "buildcraftcore:marker_volume",
+    "y": "minecraft:yellow_dye",
+    "c": "minecraft:crafting_table",
+    "g": "buildcraftcore:gears/gear_diamond",
+    "C": "minecraft:chest"
+  },
+  "result": {
+    "id": "buildcraftbuilders:builder"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "type": "buildcrafttransport:pipe",
+  "mode": "downgrade",
+  "group": "buildcrafttransport:pipe_upgrades",
+  "from": "buildcrafttransport:cobblestone_power",
+  "result": {
+    "item": "buildcrafttransport:cobblestone_item"
+  }
+}

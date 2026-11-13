@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OBO",
+    "ORO",
+    "OGO"
+  ],
+  "key": {
+    "O": "minecraft:obsidian",
+    "B": "buildcraftrobotics:redstone_board",
+    "R": "buildcraftsilicon:redstone_chipset/red",
+    "G": "buildcraftcore:gears/gear_gold"
+  },
+  "result": {
+    "id": "buildcraftsilicon:programming_table"
+  }
+}
