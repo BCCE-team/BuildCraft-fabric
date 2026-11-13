@@ -36,6 +36,8 @@ public final class FabricSiliconClient {
         // Facade state scanning mirrors NeoForge's LevelEvent.Load timing: the
         // client world and its registry access are available when this fires.
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> BCSilicon.initializeFacadeStates());
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) ->
+            buildcraft.silicon.BCSiliconRecipeSync.Client.clear());
 
         ModelLoadingPlugin.register(context -> context.modifyItemModelAfterBake().register(
             (model, info) -> NativePluggableItemModels2612.replace(model, info.itemId())));

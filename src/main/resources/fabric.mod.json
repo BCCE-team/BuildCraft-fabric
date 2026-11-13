@@ -9,7 +9,8 @@
     "buildcraftsilicon",
     "buildcraftfactory",
     "buildcraftbuilders",
-    "buildcraftrobotics"
+    "buildcraftrobotics",
+    "buildcraftcompat"
   ],
   "name": "BuildCraft Community Edition - Fabric 26.3 (restoration)",
   "description": "Work-in-progress Fabric 26.3 port of the current BCCE codebase.",
@@ -20,10 +21,17 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "buildcraft.fabric.BuildCraftFabric263"
+      "buildcraft.fabric.BuildCraftFabric263",
+      "buildcraft.compat.BuildCraftCompat"
     ],
     "client": [
       "buildcraft.fabric.BuildCraftFabric263Client"
+    ],
+    "jei_mod_plugin": [
+      "buildcraft.compat.jei.BuildCraftJeiPlugin"
+    ],
+    "jade": [
+      "buildcraft.compat.jade.BuildCraftJadePlugin"
     ]
   },
   "mixins": [
@@ -38,6 +46,10 @@
   },
   "custom": {
     "buildcraft:port_target": "26.3-fabric",
-    "buildcraft:port_stage": "silicon"
+    "buildcraft:port_stage": "compat"
+  },
+  "suggests": {
+    "jei": "*",
+    "jade": "*"
   }
 }

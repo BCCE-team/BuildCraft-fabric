@@ -70,6 +70,7 @@ public final class BCSilicon {
         BCSiliconItems.registry(RegistryBinding.direct());
         BCSiliconGuis.preInit(RegistryBinding.direct());
         BCSiliconRecipes.preInit(RegistryBinding.direct());
+        BCSiliconRecipeSync.bootstrap();
         CREATIVE_TABS.register(RegistryBinding.direct());
 
         BCCore.BUILDCRAFT_TAB.addItemProvider(BCSiliconItems::getMainTabItems);

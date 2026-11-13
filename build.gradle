@@ -18,6 +18,13 @@ java {
 
 repositories {
     maven { url = 'https://maven.fabricmc.net/' }
+    // Optional mod API dependencies for the Fabric 26.3 Compat layer.
+    // Use exact published Fabric artifacts, not NeoForge mod jars.
+    maven { url = 'https://cursemaven.com' }
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
     mavenCentral()
 }
 
@@ -26,6 +33,11 @@ dependencies {
     implementation 'net.fabricmc:fabric-loader:0.19.5'
     implementation 'net.fabricmc.fabric-api:fabric-api:0.163.0+26.3'
     implementation 'teamreborn:energy:5.0.0'
+    // These mods are optional at runtime. Their Fabric entrypoints are
+    // discovered only when the respective mod is present.
+    modCompileOnly 'curse.maven:jei-238222:9575417' // JEI Fabric 26.3, 31.17.0.113
+    modCompileOnly 'maven.modrinth:nvQzSEkH:vdhnGNqO' // Jade Fabric 26.3.0
+
     compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
@@ -214,3 +226,25 @@ def verifySiliconIsolation = tasks.register('verifyFabric263SiliconIsolation') {
 }
 tasks.named('jar') { dependsOn verifySiliconIsolation }
 tasks.named('check') { dependsOn verifySiliconIsolation }
+
+// Compat stage guard: optional integrations must never import Forge classes.
+def verifyCompatIsolation = tasks.register('verifyFabric263CompatIsolation') {
+    group = 'verification'
+    description = 'Reject native Forge/NeoForge references in Fabric Compat'
+    doLast {
+        def javaDir = file('src/main/java/buildcraft/compat')
+        def offenders = fileTree(javaDir).matching { include '**/*.java' }.files
+            .findAll { file ->
+                def source = file.getText('UTF-8')
+                source.contains('net.neoforged.') || source.contains('net.minecraftforge.') ||
+                    source.contains('mezz.jei.api.neoforge.')
+            }
+            .collect { javaDir.toPath().relativize(it.toPath()).toString() }.sort()
+        if (!offenders.isEmpty()) {
+            throw new GradleException('Fabric 26.3 Compat has native Forge dependencies:\n'
+                + offenders.join('\n'))
+        }
+    }
+}
+tasks.named('jar') { dependsOn verifyCompatIsolation }
+tasks.named('check') { dependsOn verifyCompatIsolation }
