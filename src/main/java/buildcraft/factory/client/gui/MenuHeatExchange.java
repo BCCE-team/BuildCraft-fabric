@@ -34,6 +34,8 @@ public class MenuHeatExchange extends MenuBC_Neptune implements IMenuBCTile {
     public final DataSlot progressData;
     @Nullable
     public final TileHeatExchange tile;
+    /** Snapshot of the actual four tanks of the multiblock at menu creation. */
+    private final Tank[] openedTanks = new Tank[TANK_COUNT];
 
     public MenuHeatExchange(int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         this(containerId, playerInventory, new SimpleContainerData(TANK_DATA_COUNT), DataSlot.standalone(), createLevelAccess(playerInventory, buf));
@@ -59,6 +61,11 @@ public class MenuHeatExchange extends MenuBC_Neptune implements IMenuBCTile {
             }
             return null;
         }, null);
+        if (this.tile != null && !playerInventory.player.level().isClientSide()) {
+            for (int i = 0; i < TANK_COUNT; i++) {
+                openedTanks[i] = this.tile.getSectionTank(i);
+            }
+        }
 
         // BCU: four one-item fluid-container slots, placed before player slots for shift-click logic.
         ItemHandlerSimple fluidItems = tile == null ? new ItemHandlerSimple(TANK_COUNT, 1) : tile.containerSlots;
@@ -101,12 +108,19 @@ public class MenuHeatExchange extends MenuBC_Neptune implements IMenuBCTile {
     public boolean stillValid(Player player) {
         if (tile != null) {
             if (!tile.canInteractWith(player)) return false;
-            // The server passed this exact TankContainerData on opening. A structure rebuild
-            // creates another instance; closing this menu avoids displaying or editing dead tanks.
+            // Neighbour updates may recreate the TankContainerData wrapper around the same four tanks.
+            // Close only when the controller or any *actual tank* has changed. The bound ContainerData
+            // is still valid if all four tank identities match; no stale multiblock may be edited.
             return access.evaluate((level, pos) -> {
-                if (level.isClientSide()) return true; // Client menu data is a local synchronisation mirror.
-                return level.hasChunkAt(pos) && level.getBlockEntity(pos) == tile
-                    && tile.getGuiTankData() == data;
+                if (level.isClientSide()) return true;
+                if (!level.hasChunkAt(pos) || level.getBlockEntity(pos) != tile
+                    || tile.getGuiTankData() == null) return false;
+                for (int i = 0; i < TANK_COUNT; i++) {
+                    if (openedTanks[i] == null || openedTanks[i] != tile.getSectionTank(i)) {
+                        return false;
+                    }
+                }
+                return true;
             }).orElse(false);
         }
         return buildcraft.lib.gui.BCMenuUtil.stillValidBlock(this.access, player, BCFactoryBlocks.HEATEXCHANGE_BLOCK.get());

@@ -1,6 +1,7 @@
 package buildcraft.fabric;
 
 import buildcraft.lib.client.model.ModelHolderRegistry;
+import buildcraft.lib.client.model.json.VariablePartLed;
 import buildcraft.lib.client.sprite.SpriteHolderRegistry;
 import buildcraft.lib.platform.client.ClientAtlas;
 import buildcraft.silicon.BCSiliconModels;
@@ -9,6 +10,7 @@ import buildcraft.transport.client.model.PipeBaseModelGenStandard;
 import buildcraft.transport.client.model.PipeModelCacheAll;
 import buildcraft.transport.client.model.PipeModelCacheBase;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.data.AtlasIds;
 
@@ -32,8 +34,22 @@ public final class FabricModelLifecycle263 {
         }
         if (atlas == currentAtlas) return;
 
+        // AtlasManager can publish the atlas object before its sprites are initialized.
+        // CLIENT_STARTED (and ticks during F3+T) can run in that window. Do not start
+        // resolving any BCCE sprites or mark this atlas as processed until the lookup
+        // succeeds. END_CLIENT_TICK retries automatically once loading completes.
+        try {
+            if (atlas.getSprite(MissingTextureAtlasSprite.getLocation()) == null) return;
+        } catch (IllegalStateException notYetInitialized) {
+            return;
+        }
+
         // When a resource pack is swapped, no cached quad may keep UVs from the old atlas.
-        SpriteHolderRegistry.onTextureStitchPost(new ClientAtlas.After(atlas));
+        ClientAtlas.After stitched = new ClientAtlas.After(atlas);
+        SpriteHolderRegistry.onTextureStitchPost(stitched);
+        // LED parts use their own shared sprite rather than SpriteHolderRegistry.
+        // The pulsar item model bakes them on the first inventory render.
+        VariablePartLed.onTextureStitchPost(stitched);
         PipeBaseModelGenStandard.loadSpritesCache(atlas);
         ModelHolderRegistry.reloadVariableModels();
         PipeModelCacheBase.clearCaches();

@@ -16,6 +16,10 @@ import buildcraft.lib.gui.ledger.LedgerOwnership;
 import buildcraft.lib.gui.ledger.Ledger_Neptune;
 import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.lib.gui.pos.IGuiArea;
+import buildcraft.lib.gui.statement.GuiElementStatement;
+import buildcraft.lib.gui.statement.GuiElementStatementDrag;
+import buildcraft.lib.gui.statement.GuiElementStatementVariant;
+import buildcraft.lib.gui.statement.GuiElementStatementSource;
 import buildcraft.lib.gui.statement.GuiElementStatementParam;
 import buildcraft.lib.misc.GuiUtil;
 import buildcraft.lib.tile.TileBC_Neptune;
@@ -257,25 +261,31 @@ public abstract class GuiBC8<C extends MenuBC_Neptune> extends BCContainerScreen
     public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
         List<IGuiElement> elements = mainGui.getElementsAt(mouseX, mouseY);
         boolean hitsStatementParameter = elements.stream().anyMatch(GuiElementStatementParam.class::isInstance);
+        boolean hitsStatementSource = mouseButton == 0
+            && elements.stream().anyMatch(GuiElementStatementSource.class::isInstance);
+        boolean hitsStatementSlot = elements.stream().anyMatch(GuiElementStatement.class::isInstance);
         boolean hitsLedger = elements.stream().anyMatch(Ledger_Neptune.class::isInstance);
-        if (hitsStatementParameter || hitsLedger) {
-            mainGui.onMouseClicked(mouseX, mouseY, mouseButton);
-            return true;
-        }
-        return false
-            | mainGui.onMouseClicked(mouseX, mouseY, mouseButton);
+        boolean wasDragging = mainGui.currentMenu instanceof GuiElementStatementDrag;
+        boolean handled = mainGui.onMouseClicked(mouseX, mouseY, mouseButton);
+        // BuildCraftGui returns false for normal source/slot clicks even when its listeners consumed them.
+        // Capture those interactions here; let vanilla process unrelated inventory slots as before.
+        return handled || hitsStatementParameter || hitsStatementSource || hitsStatementSlot || hitsLedger
+            || wasDragging || mainGui.currentMenu instanceof GuiElementStatementDrag;
     }
 
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        boolean result = false;
+        boolean wasInteracting = mainGui.currentMenu instanceof GuiElementStatementDrag
+            || mainGui.currentMenu instanceof GuiElementStatementVariant;
         mainGui.onMouseDragged(mouseX, mouseY, button, dragX, dragY);
-        return result;
+        return wasInteracting;
     }
 
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        boolean result = false;
+        // The dragger resets currentMenu inside onMouseReleased, so capture its state first.
+        boolean wasInteracting = mainGui.currentMenu instanceof GuiElementStatementDrag
+            || mainGui.currentMenu instanceof GuiElementStatementVariant;
         mainGui.onMouseReleased(mouseX, mouseY, button);
-        return result;
+        return wasInteracting;
     }
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {

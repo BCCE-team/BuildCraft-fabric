@@ -22,6 +22,7 @@ public final class BlueprintRenderer {
         // vanilla GUI render queue (NeoForge's submitPictureInPicture method is absent).
         ((buildcraft.fabric.mixin.GuiGraphicsStateAccess) graphics).bcce$getGuiRenderState()
             .addPicturesInPictureState(new BlueprintPipRenderState(
-                snapshot, x, y, x + width, y + height, scale, null));
+                snapshot, x, y, x + width, y + height, scale,
+                new org.joml.Matrix3x2f(graphics.pose()), null));
     }
 }

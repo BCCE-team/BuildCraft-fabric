@@ -9,6 +9,8 @@ package buildcraft.builders.client.render.pip;
 // 1.21.1), so this PiP render-state record is gated out there. On 1.21.1 the same preview is drawn
 // directly into the GUI by BlueprintGuiRenderer (no PiP render state), so nothing references this.
 import javax.annotation.Nullable;
+import org.joml.Matrix3x2f;
+import org.joml.Matrix3x2fc;
 
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState;
@@ -36,6 +38,7 @@ public record BlueprintPipRenderState(
     int x1,
     int y1,
     float scale,
+    Matrix3x2fc pose,
     @Nullable ScreenRectangle scissorArea,
     @Nullable ScreenRectangle bounds
 ) implements PictureInPictureRenderState {
@@ -50,7 +53,15 @@ public record BlueprintPipRenderState(
                                    int x0, int y0, int x1, int y1,
                                    float scale,
                                    @Nullable ScreenRectangle scissorArea) {
-        this(snapshot, x0, y0, x1, y1, scale, scissorArea,
-             PictureInPictureRenderState.getBounds(x0, y0, x1, y1, scissorArea));
+        this(snapshot, x0, y0, x1, y1, scale, new Matrix3x2f(), scissorArea);
+    }
+
+    public BlueprintPipRenderState(Snapshot snapshot,
+                                   int x0, int y0, int x1, int y1,
+                                   float scale,
+                                   Matrix3x2fc pose,
+                                   @Nullable ScreenRectangle scissorArea) {
+        this(snapshot, x0, y0, x1, y1, scale, new Matrix3x2f(pose), scissorArea,
+            PictureInPictureRenderState.getBounds(x0, y0, x1, y1, pose, scissorArea));
     }
 }

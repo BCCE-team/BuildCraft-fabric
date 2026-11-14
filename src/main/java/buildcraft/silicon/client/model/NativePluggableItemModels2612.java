@@ -14,6 +14,8 @@ import buildcraft.lib.misc.StackUtil;
 import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.BCSiliconModels;
 import buildcraft.silicon.client.FacadeItemColours;
+import buildcraft.silicon.client.LensItemTintSource;
+import net.minecraft.client.color.item.ItemTintSource;
 import buildcraft.silicon.client.model.key.KeyPlugFacade;
 import buildcraft.silicon.client.model.plug.PlugBakerFacade;
 import buildcraft.silicon.gate.GateVariant;
@@ -52,6 +54,7 @@ public final class NativePluggableItemModels2612 {
     private static final Map<GateVariant, ItemModel> GATES = new HashMap<>();
     private static final Map<Integer, ItemModel> LENSES = new HashMap<>();
     private static final Map<KeyPlugFacade, ItemModel> FACADES = new HashMap<>();
+    private static volatile ItemModel PULSAR_ITEM;
 
     private NativePluggableItemModels2612() {
     }
@@ -74,6 +77,7 @@ public final class NativePluggableItemModels2612 {
         GATES.clear();
         LENSES.clear();
         FACADES.clear();
+        PULSAR_ITEM = null;
     }
 
     /** Compatibility hook for model-bake adapters which expose a mutable model map. */
@@ -86,10 +90,15 @@ public final class NativePluggableItemModels2612 {
     }
 
     private static ItemModel itemLayer(List<MutableQuad> quads, ItemTransforms transforms, boolean translucent) {
+        return itemLayer(quads, transforms, translucent, List.of());
+    }
+
+    private static ItemModel itemLayer(List<MutableQuad> quads, ItemTransforms transforms,
+        boolean translucent, List<ItemTintSource> tints) {
         // Plug items use gui_light = front in their vanilla json models; keep the native 26.1.2 path
         // consistent so they do not render noticeably darker than the legacy baked-model version.
         return NativeItemModelBuilder.layer(quads, transforms,
-            translucent ? Sheets.translucentBlockItemSheet() : Sheets.cutoutBlockItemSheet(), false);
+            translucent ? Sheets.translucentBlockItemSheet() : Sheets.cutoutBlockItemSheet(), false, tints);
     }
 
     private static ItemModel composite(List<MutableQuad> cutout, List<MutableQuad> translucent, ItemTransforms transforms) {
@@ -146,18 +155,23 @@ public final class NativePluggableItemModels2612 {
         MutableQuad[] translucent = data.isFilter
             ? BCSiliconModels.getFilterTranslucentQuads(side, data.colour)
             : BCSiliconModels.getLensTranslucentQuads(side, data.colour);
-        return composite(copy(cutout), copy(translucent), ModelItemSimple.TRANSFORM_PLUG_AS_ITEM);
+        // Vanilla's BakedQuad has no per-vertex colour. Tint just the glass
+        // insert, not the metal frame, using the same legacy dye palette.
+        List<MutableQuad> glass = copy(translucent);
+        for (MutableQuad quad : glass) quad.setTint(0);
+        ItemModel frame = itemLayer(copy(cutout), ModelItemSimple.TRANSFORM_PLUG_AS_ITEM, false);
+        if (glass.isEmpty()) return frame;
+        return new CompositeModel(List.of(frame, itemLayer(glass,
+            ModelItemSimple.TRANSFORM_PLUG_AS_ITEM, true, List.of(new LensItemTintSource()))));
     }
 
     private static final class PulsarItemModel extends DynamicItemModel {
-        private volatile ItemModel cached;
-
         @Override
         ItemModel model(ItemStack stack) {
-            ItemModel model = cached;
+            ItemModel model = PULSAR_ITEM;
             if (model == null) {
-                synchronized (this) {
-                    model = cached;
+                synchronized (NativePluggableItemModels2612.class) {
+                    model = PULSAR_ITEM;
                     if (model == null) {
                         PluggablePulsar.setModelVariablesForItem();
                         model = composite(
@@ -165,7 +179,7 @@ public final class NativePluggableItemModels2612 {
                             copy(BCSiliconModels.PULSAR_DYNAMIC.getCutoutQuads()),
                             ModelItemSimple.TRANSFORM_PLUG_AS_ITEM
                         );
-                        cached = model;
+                        PULSAR_ITEM = model;
                     }
                 }
             }

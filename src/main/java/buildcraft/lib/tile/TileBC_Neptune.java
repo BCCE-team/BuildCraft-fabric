@@ -128,6 +128,9 @@ public abstract class TileBC_Neptune extends BCBlockEntity implements IPayloadRe
     private final Set<Player> usingPlayers = Sets.newIdentityHashSet();
     private GameProfile owner;
 
+    /** Chunk update tags may be decoded before BlockEntity#setLevel is called. */
+    @Nullable private byte[] pendingClientRenderPayload;
+
     private final IChunkCache chunkCache = new CachedChunk(this);
     private final ITileCache tileCache = TileCacheType.NEIGHBOUR_CACHE.create(this);
 
@@ -651,6 +654,28 @@ public abstract class TileBC_Neptune extends BCBlockEntity implements IPayloadRe
         }
     }
 
+    @Override
+    protected boolean readClientRenderUpdate(ValueInput input) {
+        // These int arrays are generated only by getUpdateTag and never by disk persistence.
+        if (input.getIntArray("d").isEmpty()) {
+            return false;
+        }
+        if (level == null || level.isClientSide()) {
+            handleUpdateTag(input);
+        }
+        return true;
+    }
+
+    @Override
+    public void setLevel(Level newLevel) {
+        super.setLevel(newLevel);
+        if (pendingClientRenderPayload != null && newLevel.isClientSide()) {
+            byte[] payload = pendingClientRenderPayload;
+            pendingClientRenderPayload = null;
+            handleUpdatePayload(payload);
+        }
+    }
+
     public void handleUpdateTag(ValueInput input) {
         int[] updateData = input.getIntArray("d").orElse(null);
         if (updateData == null) {
@@ -666,7 +691,11 @@ public abstract class TileBC_Neptune extends BCBlockEntity implements IPayloadRe
             }
             bytes[i] = (byte) value;
         }
-        handleUpdatePayload(bytes);
+        if (level == null) {
+            pendingClientRenderPayload = bytes;
+        } else if (level.isClientSide()) {
+            handleUpdatePayload(bytes);
+        }
     }
 
     private void handleUpdatePayload(byte[] bytes) {

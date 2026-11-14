@@ -326,13 +326,18 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
                 quad.setTint(tint * Direction.values().length + key.side.ordinal());
             }
         }
-        // Minecraft 26.3 blends several faces of a thin translucent facade, which can
-        // make the glass appear denser than an ordinary glass block. 0.2 made the glass
-        // nearly invisible; use a moderate correction without changing RGB or texture
-        // alpha, and only for installed glass facades (not facade items).
-        if (applyGlassAlpha && PluggableFacade.isGlass(key.state)) {
+        // Both the exterior and the recessed surface of a glass facade can be visible in
+        // one view. Their alpha accumulates, making coloured glass much denser than a
+        // vanilla block. Attenuate the vertex *alpha only* for installed stained-glass
+        // facades; tint RGB and source texture opacity remain untouched. Native terrain
+        // conversion preserves these per-vertex BakedColors in the Fabric mesh emitter.
+        String facadeBlockId = net.minecraft.core.registries.BuiltInRegistries.BLOCK
+            .getKey(key.state.getBlock()).getPath();
+        boolean stainedGlass = facadeBlockId.endsWith("_stained_glass")
+            || facadeBlockId.endsWith("_stained_glass_pane");
+        if (applyGlassAlpha && stainedGlass) {
             for (MutableQuad quad : quads) {
-                quad.multColourd(1.0, 1.0, 1.0, 1.0);
+                quad.multColourd(1.0, 1.0, 1.0, 0.75);
             }
         }
         return quads;

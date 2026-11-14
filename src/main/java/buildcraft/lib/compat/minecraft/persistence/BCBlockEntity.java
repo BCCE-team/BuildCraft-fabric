@@ -31,9 +31,19 @@ public abstract class BCBlockEntity extends BlockEntity {
     protected boolean storesMachineDataAtRoot() { return false; }
     protected boolean requiresPersistenceRegistries() { return true; }
 
+    /**
+     * Called only when an incoming chunk/update tag contains a BuildCraft render payload.
+     * Vanilla Fabric invokes loadAdditional(ValueInput), not the NeoForge handleUpdateTag hook.
+     * Returning true prevents a render-only tag from resetting saved pipe/tank data.
+     */
+    protected boolean readClientRenderUpdate(ValueInput input) { return false; }
+
     protected final void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         persistenceRegistries = input.lookup();
+        if (readClientRenderUpdate(input)) {
+            return;
+        }
         CompoundTag root = input.read(CompoundValueCodec.INSTANCE).orElseGet(CompoundTag::new);
         BCValueInput common = new BCValueInput(root, persistenceRegistries);
         readCommonData(common);

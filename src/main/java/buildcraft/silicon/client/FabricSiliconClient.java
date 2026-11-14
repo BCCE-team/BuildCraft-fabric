@@ -31,6 +31,9 @@ public final class FabricSiliconClient {
         BCSiliconModels.fmlPreInit();
         BCSiliconModels.init();
         BCSiliconItems.registerItemModelProperties(PlatformClientRegistration.rangeProperties());
+        PlatformClientRegistration.tintSources().register(
+            Identifier.fromNamespaceAndPath(BCSilicon.MODID, "lens_colour"),
+            LensItemTintSource.MAP_CODEC);
         BCSiliconClientGuis.clientInit(PlatformClientRegistration.screens());
         BCSiliconClientRenderers.register(PlatformClientRegistration.renderers());
         // Facade state scanning mirrors NeoForge's LevelEvent.Load timing: the

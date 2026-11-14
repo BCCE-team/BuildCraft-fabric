@@ -8,6 +8,7 @@ import buildcraft.lib.client.model.MutableVertex;
 import buildcraft.lib.misc.SpriteUtil;
 import net.minecraft.client.model.geom.builders.UVPair;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.resources.model.geometry.QuadCollection;
 import net.minecraft.client.resources.model.sprite.Material;
@@ -33,6 +34,12 @@ public final class NativeItemModelBuilder {
 
     public static ItemModel layer(List<MutableQuad> mutable, ItemTransforms transforms, RenderType renderType,
         boolean usesBlockLight) {
+        return layer(mutable, transforms, renderType, usesBlockLight, List.of());
+    }
+
+    /** A tint index on a native BakedQuad is meaningful only when its item model provides the matching source. */
+    public static ItemModel layer(List<MutableQuad> mutable, ItemTransforms transforms, RenderType renderType,
+        boolean usesBlockLight, List<ItemTintSource> tints) {
         if (mutable == null || mutable.isEmpty()) {
             return EmptyItemModel.INSTANCE;
         }
@@ -58,7 +65,7 @@ public final class NativeItemModelBuilder {
         for (BakedQuad quad : nativeQuads) {
             faces.addUnculledFace(quad);
         }
-        return new CuboidItemModelWrapper(List.of(), faces.build(), properties, new Matrix4f());
+        return new CuboidItemModelWrapper(tints, faces.build(), properties, new Matrix4f());
     }
 
     private static BakedQuad toNative(MutableQuad quad, RenderType itemRenderType) {

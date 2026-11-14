@@ -793,12 +793,67 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
 		return InteractionResult.PASS;
 	}
 
-    /** True when a player ray trace selects a pluggable or wire, not the pipe body. */
+    /** True only for a *present* attachment, never for the pipe body or an empty face. */
     public boolean targetsAttachment(Level world, BlockPos pos, Player player) {
+        TilePipeHolder tile = getPipe(world, pos, false);
+        if (tile == null || tile.getPipe() == Pipe.EMPTY) return false;
         BCBlockHitResult hit = rayTrace(world, pos, player);
         if (hit == null || hit.result == null || hit.subHit <= 6) return false;
-        return getPartSideHit(hit.result.getDirection(), hit.subHit) != null
-            || getWirePartHit(hit.subHit) != null || getWireBetweenHit(hit.subHit) != null;
+        if (hit.subHit <= 12) {
+            Direction side = getPartSideHit(hit.result.getDirection(), hit.subHit);
+            return side != null && tile.getPluggable(side) != PipePluggable.EMPTY;
+        }
+        EnumWirePart wirePart = getWirePartHit(hit.subHit);
+        if (wirePart != null) return tile.wireManager.getColorOfPart(wirePart) != null;
+        EnumWireBetween between = getWireBetweenHit(hit.subHit);
+        return between != null && tile.wireManager.getColorOfPart(between.parts[0]) != null;
+    }
+
+    /**
+     * Server-authoritative, non-block-breaking removal of a pipe attachment.
+     * Unlike the old NeoForge onDestroyedByPlayer hook, this method cannot
+     * fall through to super.onDestroyedByPlayer / Level.removeBlock.
+     */
+    public boolean removeTargetedAttachment(Level world, BlockPos pos, Player player) {
+        if (world.isClientSide() || !(world.getBlockState(pos).getBlock() instanceof BlockPipeHolder)) return false;
+        TilePipeHolder tile = getPipe(world, pos, true);
+        if (tile == null || tile.getPipe() == Pipe.EMPTY) return false;
+        BCBlockHitResult hit = rayTrace(world, pos, player);
+        if (hit == null || hit.result == null || hit.subHit <= 6) return false;
+
+        NonNullList<ItemStack> drops = NonNullList.create();
+        int subHit = hit.subHit;
+        if (subHit <= 12) {
+            Direction side = getPartSideHit(hit.result.getDirection(), subHit);
+            if (side == null || tile.getPluggable(side) == PipePluggable.EMPTY) return false;
+            removePluggable(side, tile, drops);
+        } else {
+            EnumWirePart part = getWirePartHit(subHit);
+            EnumWireBetween between = getWireBetweenHit(subHit);
+            if (part != null) {
+                DyeColor color = tile.wireManager.getColorOfPart(part);
+                if (color == null) return false;
+                drops.add(new ItemStack(BCTransportItems.wires.get(color), 1));
+                tile.wireManager.removePart(part);
+            } else if (between != null) {
+                DyeColor color = tile.wireManager.getColorOfPart(between.parts[0]);
+                if (color == null) return false;
+                drops.add(new ItemStack(BCTransportItems.wires.get(color), between.to == null ? 2 : 1));
+                if (between.to == null) tile.wireManager.removeParts(Arrays.asList(between.parts));
+                else tile.wireManager.removePart(between.parts[0]);
+            } else {
+                return false;
+            }
+            tile.scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.WIRES);
+        }
+        if (!player.isCreative()) InventoryUtil.dropAll(world, pos, drops);
+        tile.setChanged();
+        tile.requestModelDataUpdate();
+        tile.scheduleRenderUpdate();
+        // Full authoritative state after a part removal repairs any stale
+        // client-side pipe geometry and preserves the pipe BE/flow/topology.
+        tile.sendNetworkUpdate(buildcraft.lib.tile.TileBC_Neptune.NET_RENDER_DATA);
+        return true;
     }
 
 	public boolean onDestroyedByPlayer(BlockState state, Level world, BlockPos pos, Player player, ItemStack toolStack, boolean willHarvest, FluidState fluid) {

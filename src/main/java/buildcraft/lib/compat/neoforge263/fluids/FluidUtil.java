@@ -173,7 +173,10 @@ public final class FluidUtil {
                 return true;
             }
         }
-        return false;
+        // Some modded BucketItems expose a Fabric item storage with no usable
+        // extract view. The lookup succeeded, but no transfer was possible.
+        // Reuse the same strict 1000 mB fallback as the null-storage case.
+        return transferUnregisteredBucketToTank(player, hand, held, tank);
     }
 
     /**

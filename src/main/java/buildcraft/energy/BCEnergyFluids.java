@@ -8,6 +8,8 @@ import buildcraft.energy.fluid.BCLiquidBlock;
 import buildcraft.lib.fluid.BCFluid;
 import buildcraft.lib.fluid.FluidCompatRegistry;
 import buildcraft.lib.fluid.FabricFluidProperties;
+import net.fabricmc.fabric.api.registry.fluid.EntityFluidInteractionRegistry;
+import net.fabricmc.fabric.api.registry.fluid.FluidBehavior;
 import buildcraft.lib.compat.RegistryCompat;
 import buildcraft.lib.platform.registry.BCDeferredRegister;
 import buildcraft.lib.platform.registry.BCRegistryEntry;
@@ -59,6 +61,9 @@ public final class BCEnergyFluids {
         Identifier.fromNamespaceAndPath(BCEnergy.MODID, "is_oil"));
     public static final TagKey<Fluid> IS_FUEL = TagKey.create(Registries.FLUID,
         Identifier.fromNamespaceAndPath(BCEnergy.MODID, "is_fuel"));
+    /** Physically liquid heat tiers only; gas variants keep their distinct behavior. */
+    public static final TagKey<Fluid> ENTITY_LIQUID = TagKey.create(Registries.FLUID,
+        Identifier.fromNamespaceAndPath(BCEnergy.MODID, "entity_liquid"));
 
     public static final BCFluid[] crudeOil = new BCFluid[3];
     public static final BCFluid[] oilResidue = new BCFluid[3];
@@ -122,6 +127,9 @@ public final class BCEnergyFluids {
             Identifier.fromNamespaceAndPath("c", "oil")), OIL_SOURCE.get(0).get(),
             Identifier.fromNamespaceAndPath(BCEnergy.MODID, "spout_oil"),
             Identifier.fromNamespaceAndPath(BCEnergy.MODID, "spout_oil_flowing"));
+        // Fabric's fluid-behavior API handles swimming, flow, buoyancy and drowning.
+        // Never add these fluids to minecraft:water: BCFluid spread rules depend on that tag.
+        EntityFluidInteractionRegistry.register(ENTITY_LIQUID, FluidBehavior.WATER_LIKE);
     }
 
     private static int copyTriple(BCFluid[] target, int index) {
@@ -169,8 +177,10 @@ public final class BCEnergyFluids {
         if ("oil".equals(name)) {
             properties.maxSourceSpreadDistance(SPOUT_OIL_SPREAD_LIMIT);
         }
-        refs.source = FLUIDS.register(fluidName, () -> new BCFluid.Source(properties));
-        refs.flowing = FLUIDS.register(fluidName + "_flowing", () -> new BCFluid.Flowing(properties));
+        refs.source = FLUIDS.register(fluidName,
+            () -> new BCFluid.Source(properties).setColour(data[4], data[5]));
+        refs.flowing = FLUIDS.register(fluidName + "_flowing",
+            () -> new BCFluid.Flowing(properties).setColour(data[4], data[5]));
         OIL_SOURCE.add(refs.source);
         OIL_BUCKET.add(bucket);
         OIL_BLOCK.add(block);
@@ -191,8 +201,10 @@ public final class BCEnergyFluids {
             SPOUT_OIL_BLOCK::get, () -> OIL_BUCKET.get(0).get())
                 .tickDelay(30).density(DATA[0][0]).heat(0)
                 .maxSourceSpreadDistance(SPOUT_OIL_SPREAD_LIMIT).flammable(true);
-        refs.source = FLUIDS.register("spout_oil", () -> new BCFluid.Source(properties));
-        refs.flowing = FLUIDS.register("spout_oil_flowing", () -> new BCFluid.Flowing(properties));
+        refs.source = FLUIDS.register("spout_oil",
+            () -> new BCFluid.Source(properties).setColour(DATA[0][4], DATA[0][5]));
+        refs.flowing = FLUIDS.register("spout_oil_flowing",
+            () -> new BCFluid.Flowing(properties).setColour(DATA[0][4], DATA[0][5]));
         SPOUT_OIL_SOURCE = refs.source;
         SPOUT_OIL_FLOWING = refs.flowing;
     }

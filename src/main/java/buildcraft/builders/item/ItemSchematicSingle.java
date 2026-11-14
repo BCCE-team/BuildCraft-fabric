@@ -44,6 +44,12 @@ import buildcraft.lib.fluid.FluidStack;
 import buildcraft.lib.compat.NbtCompat;
 
 public class ItemSchematicSingle extends Item {
+    @Override
+    public java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(ItemStack stack) {
+        if (!isValidUsed(stack)) return java.util.Optional.empty();
+        return java.util.Optional.of(new BlueprintTooltipData(stack));
+    }
+
     public static final int DAMAGE_CLEAN = 0;
     public static final int DAMAGE_USED = 1;
     public static final String NBT_KEY = "schematic";

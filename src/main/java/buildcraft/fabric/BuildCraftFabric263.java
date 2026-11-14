@@ -15,6 +15,7 @@ import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.PlayerPickItemEvents;
 import net.minecraft.world.InteractionResult;
 import buildcraft.transport.block.BlockPipeHolder;
+import buildcraft.transport.net.MessagePipeAttachmentAttack;
 
 /**
  * Fabric 26.3 module bootstrap. Registration is in the native Fabric
@@ -31,18 +32,20 @@ public final class BuildCraftFabric263 implements ModInitializer {
         BCFactory.bootstrap();
         BCBuilders.bootstrap();
         BCRobotics.bootstrap();
-        // The old NeoForge onDestroyedByPlayer hook does not run on Fabric.
-        // Capture left-clicks on a pluggable/wire before vanilla destroys the pipe.
+        // A vanilla START_DESTROY_BLOCK packet must never be sent for an attachment.
+        // In Creative it can remove the client-side pipe before the server has only
+        // detached the pluggable, leaving an invisible, partially collidable ghost.
+        // Send an explicit, server-validated attachment request instead. The FAIL
+        // result cancels *both* vanilla mining and the vanilla destruction packet.
         AttackBlockCallback.EVENT.register((player, world, hand, pos, face) -> {
             if (player.isSpectator()) return InteractionResult.PASS;
             if (!(world.getBlockState(pos).getBlock() instanceof BlockPipeHolder pipe)
                 || !pipe.targetsAttachment(world, pos, player)) return InteractionResult.PASS;
-            if (!world.isClientSide()) {
-                pipe.onDestroyedByPlayer(world.getBlockState(pos), world, pos, player,
-                    player.getItemInHand(hand), !player.isCreative(), world.getFluidState(pos));
+            if (world.isClientSide()) {
+                MessageManager.sendToServer(new MessagePipeAttachmentAttack(pos));
+                player.swing(hand, net.minecraft.world.item.component.SwingAnimation.DEFAULT, true);
             }
-            // SUCCESS on client sends the click packet; on server it cancels mining the pipe.
-            return InteractionResult.SUCCESS;
+            return InteractionResult.FAIL;
         });
         // Pick block must resolve its sub-part on the server rather than always cloning the pipe.
         PlayerPickItemEvents.BLOCK.register((player, pos, state, includeData) -> {

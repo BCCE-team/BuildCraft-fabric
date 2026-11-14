@@ -65,6 +65,14 @@ public class ModelHolderRegistry {
         for (ModelHolder holder : HOLDERS_JSONBAKE) {
             holder.onTextureStitch(referencedSprites);
         }
+        // Static standalone models (pulsar, timer, sensor, blocker, robot station...) were
+        // never baked on Fabric: no loader callback invoked their onModelBake method. Use
+        // source JSON geometry after the atlas is available, on initial load and F3+T.
+        for (ModelHolder holder : HOLDERS_VANILLABAKE) {
+            if (holder instanceof ModelHolderStatic staticHolder) {
+                staticHolder.reloadStandaloneFromResources();
+            }
+        }
     }
     
     public static void onModelBake(ClientModelBaking.Completed event) {

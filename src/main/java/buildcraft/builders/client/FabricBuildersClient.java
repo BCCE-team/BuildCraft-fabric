@@ -8,6 +8,9 @@ import buildcraft.builders.BCBuildersItems;
 import buildcraft.builders.BCBuildersSprites;
 import buildcraft.builders.BCBuilders;
 import buildcraft.builders.client.render.pip.BlueprintPipRenderer;
+import buildcraft.builders.client.tooltip.BlueprintClientTooltip;
+import buildcraft.builders.item.BlueprintTooltipData;
+import net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback;
 import buildcraft.lib.platform.client.PlatformClientRegistration;
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry;
 
@@ -27,5 +30,7 @@ public final class FabricBuildersClient {
         BCBuildersClientRenderers.register(PlatformClientRegistration.renderers());
         BCBuildersEventDist.registerGameplayEvents();
         PictureInPictureRendererRegistry.register(context -> new BlueprintPipRenderer());
+        ClientTooltipComponentCallback.EVENT.register(component -> component instanceof BlueprintTooltipData data
+            ? new BlueprintClientTooltip(data) : null);
     }
 }

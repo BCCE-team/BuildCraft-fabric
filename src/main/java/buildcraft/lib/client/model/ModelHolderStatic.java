@@ -8,6 +8,11 @@ package buildcraft.lib.client.model;
 
 import buildcraft.lib.platform.client.ClientModelBaking;
 import buildcraft.lib.platform.client.ClientStandaloneModel;
+import buildcraft.lib.client.model.ModelUtil.TexturedFace;
+import buildcraft.lib.client.model.json.JsonTexture;
+import buildcraft.lib.client.model.json.JsonVariableModel;
+import buildcraft.lib.expression.DefaultContexts;
+import buildcraft.lib.compat.RenderCompat;
 import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +76,78 @@ public class ModelHolderStatic extends ModelHolder {
     }
 
     protected void onTextureStitch(Set<Identifier> toRegisterSprites) {
-        // The standalone model pipeline resolves and stitches its own texture dependencies.
+        // Native standalone baking is not currently dispatched by FabricModelLifecycle263.
+        // The atlas bridge below uses the same source JSON directly once its sprites exist.
+    }
+
+    /**
+     * Fabric fallback for static standalone pluggable models. No synthetic geometry is added:
+     * the existing JSON elements, faces, UVs, texture references and inherited parent are used.
+     * Runs only when the block atlas is ready or changes (including F3+T).
+     */
+    public void reloadStandaloneFromResources() {
+        quads = null;
+        unseen = true;
+        Identifier resource = Identifier.fromNamespaceAndPath(
+            modelLocation.getNamespace(), "models/" + modelLocation.getPath() + ".json");
+        try {
+            Resource jsonResource = Minecraft.getInstance().getResourceManager().getResource(resource).orElse(null);
+            if (jsonResource == null) throw new java.io.IOException("Missing resource " + resource);
+            JsonObject modelJson;
+            try (BufferedReader reader = jsonResource.openAsReader()) {
+                modelJson = JsonParser.parseReader(reader).getAsJsonObject();
+            }
+            if (modelJson.has("parent")) {
+                // Vanilla model parents are relative to assets/*/models/; our variable-model
+                // loader accepts resource-root IDs. Translate only for this in-memory copy.
+                Identifier parent = Identifier.parse(modelJson.get("parent").getAsString());
+                if (!parent.getPath().startsWith("models/")) {
+                    modelJson.addProperty("parent", Identifier.fromNamespaceAndPath(parent.getNamespace(),
+                        "models/" + parent.getPath()).toString());
+                }
+            }
+            JsonVariableModel model = new JsonVariableModel(modelJson,
+                DefaultContexts.createWithAll("standalone:" + modelLocation), new ResourceLoaderContext());
+            MutableQuad[] cutout = model.bakePart(model.cutoutElements, lookup -> resolveStaticTexture(model, lookup));
+            MutableQuad[] translucent = model.bakePart(model.translucentElements,
+                lookup -> resolveStaticTexture(model, lookup));
+            if (isTranslucentModel(modelLocation, 0)) {
+                // Vanilla elements are represented as cutout geometry by the shared JSON reader.
+                MutableQuad[] merged = new MutableQuad[cutout.length + translucent.length];
+                System.arraycopy(cutout, 0, merged, 0, cutout.length);
+                System.arraycopy(translucent, 0, merged, cutout.length, translucent.length);
+                quads = new MutableQuad[][] { MutableQuad.EMPTY_ARRAY, merged };
+            } else {
+                quads = new MutableQuad[][] { cutout, translucent };
+            }
+            if (quads[0].length == 0 && quads[1].length == 0) {
+                failReason = "Standalone resource has no faces: " + resource;
+                BCLog.logger.warn("[lib.model.holder] " + failReason);
+            } else {
+                failReason = null;
+            }
+        } catch (Exception | LinkageError error) {
+            failReason = "Standalone JSON bake failed: " + error.getMessage();
+            quads = emptyLayers();
+            BCLog.logger.warn("[lib.model.holder] " + failReason + " (" + resource + ")", error);
+        }
+        unseen = false;
+    }
+
+    private static TexturedFace resolveStaticTexture(JsonVariableModel model, String key) {
+        JsonTexture texture = new JsonTexture(key);
+        for (int attempts = 0; texture.location.startsWith("#") && attempts < 16; attempts++) {
+            String name = texture.location.substring(1);
+            JsonTexture inherited = model.textures.get(name);
+            if (inherited == null) break;
+            texture = texture.inParent(inherited);
+        }
+        TexturedFace result = new TexturedFace();
+        result.faceData = texture.faceData;
+        result.sprite = texture.location.startsWith("#")
+            ? buildcraft.lib.misc.SpriteUtil.missingSprite()
+            : RenderCompat.blockSprites().apply(Identifier.parse(texture.location));
+        return result;
     }
 
     protected void onModelBakePre(ClientModelBaking.Additional event) {

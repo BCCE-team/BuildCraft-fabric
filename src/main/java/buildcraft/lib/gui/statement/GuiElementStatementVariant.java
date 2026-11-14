@@ -34,6 +34,7 @@ public class GuiElementStatementVariant extends GuiElementSimple implements IMen
     private final IReference<? extends IGuiSlot> ref;
     private final IGuiSlot[] possible;
     private final IGuiArea[] posPossible;
+    private boolean awaitingInitialRelease = true;
 
     public GuiElementStatementVariant(BuildCraftGui gui, IGuiArea element, IReference<? extends IGuiSlot> ref,
         IGuiSlot[] possible, IGuiArea[] posPossible) {
@@ -104,6 +105,22 @@ public class GuiElementStatementVariant extends GuiElementSimple implements IMen
     // IInteractionElement
 
     public void onMouseReleased(int button) {
+        if (button != 0) return;
+        if (awaitingInitialRelease) {
+            awaitingInitialRelease = false;
+            // Opening the selector starts with mouse-down on its centre slot. The release
+            // at that same position is not a selection and must not dismiss the menu.
+            // Drag-and-release on a different option still selects immediately.
+            boolean releasedOnOrigin = posPossible.length > 0 && posPossible[0].contains(gui.mouse);
+            boolean releasedOnOption = false;
+            for (int i = 1; i < posPossible.length; i++) {
+                if (possible[i] != null && posPossible[i].contains(gui.mouse)) {
+                    releasedOnOption = true;
+                    break;
+                }
+            }
+            if (releasedOnOrigin || !releasedOnOption) return;
+        }
         gui.currentMenu = null;
         iteratePossible((pos, slot) -> {
             if (pos.contains(gui.mouse)) {

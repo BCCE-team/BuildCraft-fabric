@@ -7,6 +7,8 @@
 package buildcraft.builders.item;
 
 import java.util.List;
+import java.util.Optional;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import java.util.Locale;
 import java.util.function.Consumer;
 
@@ -71,6 +73,12 @@ public class ItemSnapshot extends Item implements ICreativeTabItemProvider {
 		ItemStackUtil.setCustomData(stack, nbt);
         stack.set(DataComponents.MAX_STACK_SIZE, 1);
         return stack;
+    }
+
+    @Override
+    public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
+        if (getHeader(stack) == null) return Optional.empty();
+        return Optional.of(new BlueprintTooltipData(stack));
     }
 
     public static Header getHeader(ItemStack stack) {

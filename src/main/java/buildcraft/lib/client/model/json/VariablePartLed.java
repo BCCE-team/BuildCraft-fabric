@@ -32,6 +32,10 @@ public class VariablePartLed extends VariablePartCuboidBase {
     }
 
     protected VariableFaceData getFaceData(Direction side, ITextureGetter spriteLookup) {
+        // Resource reload can briefly request item quads before atlas publication.
+        // Never create a quad with a null sprite; the next atlas-ready pass
+        // invalidates item-model caches and rebuilds these LED faces.
+        if (FACE_DATA.sprite == null) return null;
         FACE_DATA.uvs.minU = 1 / 16.0f;
         FACE_DATA.uvs.minV = 2 / 16.0f;
         FACE_DATA.uvs.maxU = 1 / 16.0f;
@@ -41,7 +45,9 @@ public class VariablePartLed extends VariablePartCuboidBase {
     
     public static void onTextureStitchPost(ClientAtlas.After event) {
     	if(net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS.equals(event.getAtlas().location())) {
-            FACE_DATA.sprite = event.getAtlas().getSprite(FALLBACK_SPRITE);
+            var sprite = event.getAtlas().getSprite(FALLBACK_SPRITE);
+            FACE_DATA.sprite = sprite != null ? sprite
+                : event.getAtlas().getSprite(net.minecraft.client.renderer.texture.MissingTextureAtlasSprite.getLocation());
     	}
 
     }

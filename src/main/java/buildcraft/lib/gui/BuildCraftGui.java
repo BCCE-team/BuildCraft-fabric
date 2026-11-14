@@ -312,7 +312,9 @@ public class BuildCraftGui {
         IMenuElement m = currentMenu;
         if (m != null) {
             m.onMouseClicked(mouseButton);
-            if (m.shouldFullyOverride()) {
+            if (m.shouldFullyOverride() || currentMenu != m) {
+                // The menu may have just completed a carried-statement drop.
+                // Do not also open the destination slot's variant popup.
                 return true;
             }
         }

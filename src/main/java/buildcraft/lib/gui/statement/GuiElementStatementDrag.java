@@ -23,6 +23,7 @@ public class GuiElementStatementDrag implements IMenuElement {
     public final BuildCraftGui gui;
 
     private boolean isDragging;
+    private boolean initialReleasePending;
 
     @Nullable
     private IGuiSlot dragging;
@@ -35,6 +36,7 @@ public class GuiElementStatementDrag implements IMenuElement {
 
     public void startDragging(IGuiSlot slot) {
         isDragging = true;
+        initialReleasePending = true;
         dragging = slot;
         gui.currentMenu = this;
     }
@@ -106,36 +108,60 @@ public class GuiElementStatementDrag implements IMenuElement {
     // IInteractableElement
 
     public void onMouseClicked(int button) {
-        if (button != 1) {
+        if (!isDragging) return;
+        if (!initialReleasePending) {
+            // Support click-to-pick / click-to-place as well as the legacy drag gesture.
+            if (button == 0) {
+                tryPlaceAtPointer();
+                clearDrag();
+            } else if (button == 1) {
+                clearDrag();
+            }
             return;
         }
-        for (IGuiElement element : gui.getElementsAt(gui.mouse.getX(), gui.mouse.getY())) {
-            if (element instanceof IReference<?>) {
-                IReference<?> ref = (IReference<?>) element;
-                Object obj = ref.get();
-                if (obj == null || obj instanceof IGuiSlot) {
-                    startDragging((IGuiSlot) obj);
-                    break;
+        if (button == 1) {
+            // Right-click on an existing statement while dragging switches the carried value.
+            for (IGuiElement element : gui.getElementsAt(gui.mouse.getX(), gui.mouse.getY())) {
+                if (element instanceof IReference<?> ref) {
+                    Object obj = ref.get();
+                    if (obj == null || obj instanceof IGuiSlot) {
+                        startDragging((IGuiSlot) obj);
+                        break;
+                    }
                 }
             }
         }
     }
 
     public void onMouseReleased(int button) {
-        if (!isDragging) {
-            return;
+        if (!isDragging || button != 0) return;
+        boolean placed = tryPlaceAtPointer();
+        if (placed) {
+            clearDrag();
+        } else if (initialReleasePending) {
+            // A click on the source has no destination. Keep its icon attached to the
+            // pointer until the next left click, instead of discarding it immediately.
+            initialReleasePending = false;
+        } else {
+            clearDrag();
         }
+    }
+
+    private boolean tryPlaceAtPointer() {
         for (IGuiElement element : gui.getElementsAt(gui.mouse.getX(), gui.mouse.getY())) {
-            if (element instanceof IReference<?>) {
-                IReference<?> ref = (IReference<?>) element;
+            if (element instanceof IReference<?> ref && checkCanSet(ref, dragging)) {
                 ref.setIfCan(dragging);
+                return true;
             }
         }
+        return false;
+    }
+
+    private void clearDrag() {
         isDragging = false;
         dragging = null;
-        if (gui.currentMenu == this) {
-            gui.currentMenu = null;
-        }
+        initialReleasePending = false;
+        if (gui.currentMenu == this) gui.currentMenu = null;
     }
 
     // IMenuElement
