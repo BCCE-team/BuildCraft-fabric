@@ -131,6 +131,24 @@ public abstract class TileBC_Neptune extends BCBlockEntity implements IPayloadRe
     /** Chunk update tags may be decoded before BlockEntity#setLevel is called. */
     @Nullable private byte[] pendingClientRenderPayload;
 
+    /**
+     * NeoForge invokes onLoad/onChunkUnloaded as BlockEntity lifecycle hooks.
+     * Vanilla Fabric does not. Activate after the first actual block-entity tick
+     * (NBT must already be decoded) and deactivate on removal/chunk unload.
+     * This is transient: it must never appear in the saved machine NBT.
+     */
+    private transient boolean fabricLifecycleActive;
+
+    /** Called by Fabric's native block tickers before update(). */
+    public final void ensureFabricLifecycleLoaded() {
+        if (!fabricLifecycleActive && level != null && !isRemoved()) {
+            // Commit before running callbacks: they may access adjacent tiles,
+            // query the same holder or synchronously trigger a network update.
+            fabricLifecycleActive = true;
+            onLoad();
+        }
+    }
+
     private final IChunkCache chunkCache = new CachedChunk(this);
     private final ITileCache tileCache = TileCacheType.NEIGHBOUR_CACHE.create(this);
 
@@ -276,7 +294,14 @@ public abstract class TileBC_Neptune extends BCBlockEntity implements IPayloadRe
     }
 
 
+    @Override
     public void setRemoved() {
+        // The native Fabric lifecycle has no NeoForge onChunkUnloaded callback.
+        // Keep unload separate from onRemove: never destroy machines or frames here.
+        if (fabricLifecycleActive) {
+            fabricLifecycleActive = false;
+            onChunkUnloaded();
+        }
         super.setRemoved();
         chunkCache.invalidate();
         tileCache.invalidate();
@@ -289,6 +314,9 @@ public abstract class TileBC_Neptune extends BCBlockEntity implements IPayloadRe
     }
 
     public void onLoad() {
+        // Also accept explicit load notifications from older BuildCraft callers.
+        // The next vanilla tick must not repeat the same restoration.
+        fabricLifecycleActive = true;
         chunkCache.invalidate();
         tileCache.invalidate();
     }
@@ -415,7 +443,10 @@ public abstract class TileBC_Neptune extends BCBlockEntity implements IPayloadRe
     // Item caps
     protected void onSlotChange(IItemHandlerModifiable handler, int slot, @Nonnull ItemStack before,
         @Nonnull ItemStack after) {
-        if (level.isLoaded(worldPosition)) {
+        // During NBT restoration the inventory may fire a contents callback before
+        // BlockEntity#setLevel. The inventory is already being decoded from disk;
+        // do not access a missing level or emit comparator changes at this stage.
+        if (level != null && !level.isClientSide() && level.isLoaded(worldPosition)) {
             if (getBlockState().hasAnalogOutputSignal()) {
                 setChanged();
             } else {
@@ -432,6 +463,21 @@ public abstract class TileBC_Neptune extends BCBlockEntity implements IPayloadRe
         // BlockEntity#setChanged is the cross-version persistence boundary for marking the containing
         // chunk dirty, including pipe state that must survive a world save.
         setChanged();
+    }
+
+    /**
+     * Checkpoint long-running machine progress that does not change its inventory or blocks
+     * every tick (construction queues, drill position, accumulated MJ). Ordinary item/tank
+     * mutations still call markChunkDirty immediately; this bounds the less-visible state
+     * to at most one additional dirty notification per active second and never runs client-side.
+     */
+    protected final void checkpointMachineState(boolean hasStateToPersist) {
+        // Stagger the one-second checkpoints by position so large machine arrays
+        // do not dirty all their chunks on the same server tick.
+        if (hasStateToPersist && level != null && !level.isClientSide() && !isRemoved()
+            && Math.floorMod(level.getGameTime(), 20L) == Math.floorMod(worldPosition.asLong(), 20L)) {
+            markChunkDirty();
+        }
     }
 
     // ##################
@@ -640,7 +686,12 @@ public abstract class TileBC_Neptune extends BCBlockEntity implements IPayloadRe
             byte[] bytes = new byte[buf.readableBytes()];
             buf.readBytes(bytes);
 
-            CompoundTag nbt = super.getUpdateTag(registries);
+            // A client render update is not a disk save. Including
+            // super.getUpdateTag() here sends the entire machine NBT twice
+            // (potentially huge pipe/blueprint contents) and can accidentally
+            // overwrite runtime state if vanilla applies the update tag as NBT.
+            // Full machine state is written only by BCBlockEntity.saveAdditional.
+            CompoundTag nbt = new CompoundTag();
             // ValueInput has no byte-array primitive accessor. Store the payload as unsigned ints on 1.21.5+
             // so chunk-load and block-update synchronization can recover the exact FriendlyByteBuf bytes.
             int[] updateData = new int[bytes.length];

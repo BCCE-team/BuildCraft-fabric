@@ -339,6 +339,10 @@ public class TileFiller extends TileBC_Neptune
             restorePendingBuilder();
         }
         battery.tick(level, worldPosition);
+        // Filler task progress, pending addon restoration and stored MJ do not necessarily
+        // modify slots or neighbours; all need a periodic disk-save checkpoint.
+        checkpointMachineState(battery.getStored() > 0 || pendingBuilderNbt != null
+            || pendingAddonVolumeBoxId != null || (mode != Mode.OFF && !finished && box.isInitialized()));
         if (--renderUpdateCooldown <= 0) {
             renderUpdateCooldown = RENDER_UPDATE_INTERVAL;
             // Flying blocks need per-tick interpolation only while work can actually advance.

@@ -53,8 +53,10 @@ public class BlockMiningWell extends BlockBCTile_Neptune implements IBlockWithFa
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
 			BlockEntityType<T> bet) {
 		return (bet == BCFactoryBlocks.ENTITYBLOCKMININGWELL.get()) ? ($0,pos,$1,BlockEntity) -> {
-			if(BlockEntity instanceof TileMiningWell be)
+			if(BlockEntity instanceof TileMiningWell be) {
+				be.ensureFabricLifecycleLoaded();
 				be.update();
+			}
 		} : null;
 	}
 

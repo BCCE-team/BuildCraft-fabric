@@ -17,7 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.resources.ResourceKey;
 
 public abstract class MarkerCache<S extends MarkerSubCache<?>> {
     public static final boolean DEBUG = BCDebugging.shouldDebugLog("lib.markers");
@@ -25,8 +25,10 @@ public abstract class MarkerCache<S extends MarkerSubCache<?>> {
 
     public final String name;
 
-    private final Map<DimensionType, S> cacheClient = new ConcurrentHashMap<>();
-    private final Map<DimensionType, S> cacheServer = new ConcurrentHashMap<>();
+    // A dimension type is not a dimension identity. Several worlds can use the same
+    // type, and the saved positions/connections must never be shared between them.
+    private final Map<ResourceKey<Level>, S> cacheClient = new ConcurrentHashMap<>();
+    private final Map<ResourceKey<Level>, S> cacheServer = new ConcurrentHashMap<>();
 
     public MarkerCache(String name) {
         this.name = name;
@@ -70,16 +72,15 @@ public abstract class MarkerCache<S extends MarkerSubCache<?>> {
     }
 
     private void onLevelUnloadImpl(LevelAccessor levelAccessor) {
-        Map<DimensionType, S> cache = levelAccessor.isClientSide() ? cacheClient : cacheServer;
-        DimensionType key = levelAccessor.dimensionType();
-        cache.remove(key);
+        if (!(levelAccessor instanceof Level level)) return;
+        Map<ResourceKey<Level>, S> cache = level.isClientSide() ? cacheClient : cacheServer;
+        cache.remove(level.dimension());
     }
 
     protected abstract S createSubCache(Level level);
 
     public S getSubCache(Level level) {
-        Map<DimensionType, S> cache = level.isClientSide() ? cacheClient : cacheServer;
-        DimensionType key = level.dimensionType();
-        return cache.computeIfAbsent(key, k -> createSubCache(level));
+        Map<ResourceKey<Level>, S> cache = level.isClientSide() ? cacheClient : cacheServer;
+        return cache.computeIfAbsent(level.dimension(), key -> createSubCache(level));
     }
 }

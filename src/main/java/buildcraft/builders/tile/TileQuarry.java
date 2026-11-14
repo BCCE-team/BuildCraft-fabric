@@ -968,6 +968,11 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
             return;
         }
 
+        // Quarry cursor/task, drill position and the battery advance without a guaranteed inventory mutation.
+        // Persist at most once a second while a saved job or a refund is present.
+        checkpointMachineState(battery.getStored() > 0 || frameBox.isInitialized()
+            || currentTask != null || pendingTaskPowerRefund > 0);
+
         // Refunds are part of the transaction ledger, not best-effort battery writes. If the battery was full when
         // a task was cancelled, keep retrying instead of silently losing the already-withdrawn MJ.
         flushPendingTaskPowerRefund();

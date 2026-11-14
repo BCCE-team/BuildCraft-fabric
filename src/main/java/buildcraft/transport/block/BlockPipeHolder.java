@@ -165,8 +165,9 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
 	// ticks
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level lev, BlockState bs, BlockEntityType<T> bet) {
 		return bet == BCTransportBlocks.PIPE_HOLDER_BE.get() ? ($0, pos, $1, BlockEntity) -> {
-			if (BlockEntity instanceof TilePipeHolder) {
-				((TilePipeHolder) BlockEntity).update();
+			if (BlockEntity instanceof TilePipeHolder holder) {
+				holder.ensureFabricLifecycleLoaded();
+				holder.update();
 			}
 		} : null;
 	}

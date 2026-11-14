@@ -108,7 +108,12 @@ public abstract class TileLaserTableBase extends TileBC_Neptune implements Laser
         }
 
         if (getTarget() <= 0) {
-            power = 0;
+            if (power != 0) {
+                // A removed/invalid recipe invalidates paid progress. Persist that reset,
+                // otherwise a reload can restore energy which the live machine discarded.
+                power = 0;
+                markChunkDirty();
+            }
             avgPower.clear();
         }
     }

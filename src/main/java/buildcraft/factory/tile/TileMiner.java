@@ -90,6 +90,9 @@ public abstract class TileMiner extends TileBC_Neptune implements IDebuggable {
         }
 
         battery.tick(getLevel(), getBlockPos());
+        // Energy can arrive while mining is blocked and progress remains unchanged.
+        // The progress-only dirty check below does not cover that saved battery state.
+        checkpointMachineState(battery.getStored() > 0);
 
         if (level.getGameTime() % 10 == offset) {
             sendNetworkUpdate(NET_LED_STATUS);

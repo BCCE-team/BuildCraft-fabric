@@ -314,7 +314,7 @@ public class TilePipeHolder extends TileBC_Neptune implements IPipeHolder, IDebu
     }
 
 	public void setRemoved() {
-        if (pipe != Pipe.EMPTY) pipe.onChunkUnloaded();
+        // Base class now calls onChunkUnloaded at the Fabric removal boundary.
 		super.setRemoved();
 		eventBus.fireEvent(new PipeEventTileState.Invalidate(this));
 		wireManager.invalidate();
@@ -324,7 +324,7 @@ public class TilePipeHolder extends TileBC_Neptune implements IPipeHolder, IDebu
         super.clearRemoved();
         eventBus.fireEvent(new PipeEventTileState.Validate(this));
         wireManager.validate();
-        if (pipe != Pipe.EMPTY) pipe.onLoad();
+        // onLoad is delayed until after NBT decoding, once per activation.
     }
 
     public void onChunkUnloaded() {

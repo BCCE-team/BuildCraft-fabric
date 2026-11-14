@@ -206,6 +206,7 @@ public abstract class BlockBCTile_Neptune extends BlockBCBase_Neptune implements
 			BlockEntityType<T> bet) {
 		return (a,b,c,blockEntity) -> {
 			if(blockEntity instanceof TileBC_Neptune tile) {
+				tile.ensureFabricLifecycleLoaded();
 				tile.update();
 			}
 		};

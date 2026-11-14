@@ -224,6 +224,7 @@ public class BlockHeatExchange extends BlockBCTile_Neptune implements ICustomPip
         BlockEntityType<T> blockEntityType) {
         return blockEntityType == BCFactoryBlocks.ENTITYBLOCKHEATEXCHANGE.get() ? ($0, pos, $1, blockEntity) -> {
             if (blockEntity instanceof TileHeatExchange heatExchange) {
+                heatExchange.ensureFabricLifecycleLoaded();
                 heatExchange.update();
             }
         } : null;

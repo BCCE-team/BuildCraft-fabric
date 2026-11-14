@@ -475,6 +475,10 @@ public class TileBuilder extends TileBC_Neptune implements IDebuggable, ITileFor
         net.minecraft.util.profiling.Profiler.get().push("main");
         if (!level.isClientSide()) {
             restartSnapshotAfterLoad();
+            // The builder's task cursor and MJ battery can change without an inventory event.
+            // A bounded checkpoint makes those changes durable across chunk unload/rejoin.
+            checkpointMachineState(battery.getStored() > 0 || needsRestartAfterLoad
+                || snapshotType != null);
         }
 
         SnapshotBuilder<?> builder = getBuilder();
