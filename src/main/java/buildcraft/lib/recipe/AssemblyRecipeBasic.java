@@ -49,6 +49,11 @@ public abstract class AssemblyRecipeBasic implements Recipe<RecipeInput>, Compar
         return matches(new ContainerRecipeInput(container), level);
     }
 
+    @Override
+    public ItemStack assemble(RecipeInput input) {
+        return assemble(input, (HolderLookup.Provider) null);
+    }
+
     public ItemStack assemble(RecipeInput input, HolderLookup.Provider registries) {
         Set<ItemStack> outputs = getOutputs(new RecipeInputItemHandler(input));
         return outputs.isEmpty() ? ItemStack.EMPTY : outputs.iterator().next().copy();
@@ -97,6 +102,12 @@ public abstract class AssemblyRecipeBasic implements Recipe<RecipeInput>, Compar
     public PlacementInfo placementInfo() {
         return PlacementInfo.NOT_PLACEABLE;
     }
+
+    @Override
+    public String group() { return ""; }
+
+    @Override
+    public boolean showNotification() { return true; }
 
     public RecipeBookCategory recipeBookCategory() {
         return RecipeBookCategories.CRAFTING_MISC;

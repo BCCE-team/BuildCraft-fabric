@@ -20,6 +20,6 @@ public final class BCCapabilityRegistration {
         if (capability == null || type == null) return;
         FabricStorageLookups.registerAddonType(type);
         TilesAPI.fabricLookup(capability).registerForBlockEntities(
-            (blockEntity, side) -> blockEntity.getCapability(capability, side), type);
+            (blockEntity, side) -> ((IBCCapabilityProvider) blockEntity).getCapability(capability, side), type);
     }
 }

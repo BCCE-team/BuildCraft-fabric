@@ -64,7 +64,7 @@ public class PluggablePowerAdaptor extends PipePluggable {
     @Override
     @Nullable
     public PluggableModelKey getModelRenderKey(RenderType layer) {
-        if (layer == RenderType.cutout()) {
+        if (layer == buildcraft.lib.compat.minecraft.render.BCRenderTypes.cutout()) {
             return new KeyPlugPowerAdaptor(side);
         }
         return null;

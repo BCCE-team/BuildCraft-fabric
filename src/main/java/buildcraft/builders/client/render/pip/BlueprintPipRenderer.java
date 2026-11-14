@@ -159,9 +159,9 @@ public final class BlueprintPipRenderer extends PictureInPictureRenderer<Bluepri
         int sizeY = Math.max(1, snapshot.size.getY());
         int sizeZ = Math.max(1, snapshot.size.getZ());
         poseStack.scale(1.0f, -1.0f, -1.0f);
-        poseStack.mulPose(Axis.XP.rotationDegrees(20));
+        poseStack.mulPose(new org.joml.Matrix4f().rotation(Axis.XP.rotationDegrees(20)));
         float yaw = (System.currentTimeMillis() % 3600L) / 3600.0f * 360.0f;
-        poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
+        poseStack.mulPose(new org.joml.Matrix4f().rotation(Axis.YP.rotationDegrees(yaw)));
         poseStack.translate(-sizeX / 2.0f, -sizeY / 2.0f, -sizeZ / 2.0f);
 
         Minecraft minecraft = Minecraft.getInstance();
@@ -317,8 +317,8 @@ public final class BlueprintPipRenderer extends PictureInPictureRenderer<Bluepri
             poseStack.pushPose();
             poseStack.translate(at.getX() + 0.5f, at.getY() + 0.5f, at.getZ() + 0.5f);
             if (engineRotation != null) {
-                poseStack.mulPose(Axis.YP.rotationDegrees(-engineRotation[1]));
-                poseStack.mulPose(Axis.XP.rotationDegrees(engineRotation[0]));
+                poseStack.mulPose(new org.joml.Matrix4f().rotation(Axis.YP.rotationDegrees(-engineRotation[1])));
+                poseStack.mulPose(new org.joml.Matrix4f().rotation(Axis.XP.rotationDegrees(engineRotation[0])));
             }
             //? if >=26.2 {
             item.submit(poseStack, collector, FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0);

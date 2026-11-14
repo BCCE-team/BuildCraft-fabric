@@ -18,7 +18,10 @@ public final class BlueprintRenderer {
         long sz = Math.max(1, snapshot.size.getZ());
         float diagonal = (float)Math.sqrt((double)sx*sx+(double)sy*sy+(double)sz*sz);
         float scale = Math.min(width,height)/(diagonal * 1.05f);
-        graphics.submitPictureInPictureRenderState(new BlueprintPipRenderState(
-            snapshot,x,y,x+width,y+height,scale,graphics.peekScissorStack()));
+        // Fabric: preserve the actual custom PictureInPictureRenderState through the
+        // vanilla GUI render queue (NeoForge's submitPictureInPicture method is absent).
+        ((buildcraft.fabric.mixin.GuiGraphicsStateAccess) graphics).bcce$getGuiRenderState()
+            .addPicturesInPictureState(new BlueprintPipRenderState(
+                snapshot, x, y, x + width, y + height, scale, null));
     }
 }

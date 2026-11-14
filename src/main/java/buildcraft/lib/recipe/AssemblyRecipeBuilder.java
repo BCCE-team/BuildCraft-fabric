@@ -7,8 +7,8 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
-import net.minecraft.advancements.Criterion;
-import net.minecraft.advancements.criterion.RecipeUnlockedTrigger;
+import net.minecraft.advancements.triggers.Criterion;
+import net.minecraft.advancements.triggers.RecipeUnlockedTrigger;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.Identifier;
@@ -40,6 +40,11 @@ public class AssemblyRecipeBuilder implements RecipeBuilder {
         return this;
     }
 
+    @Override
+    public ResourceKey<Recipe<?>> defaultId() {
+        return RecipeBuilder.getDefaultRecipeId(result);
+    }
+
     public Item getResult() {
         return result.getItem();
     }
@@ -47,7 +52,7 @@ public class AssemblyRecipeBuilder implements RecipeBuilder {
     public void save(RecipeOutput output, ResourceKey<Recipe<?>> key) {
         Identifier id = key.identifier();
         advancement.parent(ROOT_RECIPE_ADVANCEMENT)
-            .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(key))
+            .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(output.lookup(net.minecraft.core.registries.Registries.RECIPE).getOrThrow(key)))
             .rewards(AdvancementRewards.Builder.recipe(key))
             .requirements(AdvancementRequirements.Strategy.OR);
 

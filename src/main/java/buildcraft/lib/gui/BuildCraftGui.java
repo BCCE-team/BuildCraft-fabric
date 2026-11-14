@@ -113,7 +113,11 @@ public class BuildCraftGui {
     /** Creates a new {@link BuildCraftGui} that takes it's {@link #rootElement} from the {@link AbstractContainerScreen}'s
      * size. */
     public static IGuiArea createWindowedArea(AbstractContainerScreen<?> gui) {
-        return IGuiArea.create(gui::getLeftPos, gui::getTopPos, gui::getImageWidth, gui::getImageHeight);
+        return IGuiArea.create(
+            () -> buildcraft.lib.compat.minecraft.gui.BCContainerScreen.leftOf(gui),
+            () -> buildcraft.lib.compat.minecraft.gui.BCContainerScreen.topOf(gui),
+            () -> ((buildcraft.lib.compat.minecraft.gui.BCContainerScreen<?>) gui).bcImageWidth(),
+            () -> ((buildcraft.lib.compat.minecraft.gui.BCContainerScreen<?>) gui).bcImageHeight());
     }
 
     /** @return The current partial ticks value. */

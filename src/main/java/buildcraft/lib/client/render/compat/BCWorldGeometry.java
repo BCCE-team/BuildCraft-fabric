@@ -37,7 +37,9 @@ public final class BCWorldGeometry {
     }
 
     public static void flush() {
-        active().endVertices();
+        // A capture snapshot is finalised by RecordingBuffers.finish() in capture().
+        // There is no standalone immediate GPU flush in the extraction pipeline.
+        active();
     }
 
     /** True while Fabric's level extraction callback is recording detached geometry. */

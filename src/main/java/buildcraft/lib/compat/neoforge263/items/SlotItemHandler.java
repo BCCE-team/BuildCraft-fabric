@@ -15,7 +15,7 @@ public class SlotItemHandler extends Slot {
         this.handlerIndex=index;
     }
     public IItemHandler getItemHandler(){return handler;}
-    @Override public int getSlotIndex(){return handlerIndex;}
+    public int getSlotIndex(){return handlerIndex;}
     @Override public ItemStack getItem(){return handler.getStackInSlot(handlerIndex);}
     @Override public boolean hasItem(){return !getItem().isEmpty();}
     @Override public boolean mayPlace(ItemStack stack){return handler.isItemValid(handlerIndex,stack);}
@@ -28,7 +28,7 @@ public class SlotItemHandler extends Slot {
     @Override public ItemStack remove(int amount){return handler.extractItem(handlerIndex,amount,false);}
     @Override public boolean mayPickup(Player player){return !handler.extractItem(handlerIndex,1,true).isEmpty();}
     @Override public void setChanged(){}
-    @Override public boolean isSameInventory(Slot other){
+    public boolean isSameInventory(Slot other){
         return other instanceof SlotItemHandler slot && slot.handler == handler;
     }
 }

@@ -155,7 +155,8 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Ren
         } else if (pipe.flow instanceof PipeFlowFluids fluidFlow) {
             // Fluids need their own transparent submit. Sending them through a cutout-only compatibility bridge can
             // discard the atlas geometry, which makes filled pipes look completely empty.
-            PipeFlowRendererFluids.INSTANCE.submit(fluidFlow, state.partialTick, poseStack, collector, light, overlay);
+            submitLegacyGeometry(collector, poseStack, RenderCompat.translucent(), (matrix, buffers) ->
+                PipeFlowRendererFluids.INSTANCE.render(fluidFlow, state.partialTick, matrix, buffers, light, overlay));
         } else if (pipe.flow != null) {
             submitLegacyGeometry(collector, poseStack, RenderCompat.cutout(), (matrix, buffers) ->
                 renderFlow(pipe.flow, state.partialTick, matrix, buffers, light, overlay)

@@ -29,7 +29,7 @@ public class SoundUtil {
     }
 
     public static void playBlockPlace(Level world, BlockPos pos, BlockState state) {
-        SoundType soundType = state.getBlock().getSoundType(state, world, pos, null);
+        SoundType soundType = state.getSoundType();
         float volume = (soundType.getVolume() + 1.0F) / 2.0F;
         float pitch = soundType.getPitch() * 0.8F;
         world.playSound(null, pos, soundType.getPlaceSound(), SoundSource.BLOCKS, volume, pitch);
@@ -40,7 +40,7 @@ public class SoundUtil {
     }
 
     public static void playBlockBreak(Level world, BlockPos pos, BlockState state) {
-        SoundType soundType = state.getBlock().getSoundType(state, world, pos, null);
+        SoundType soundType = state.getSoundType();
         float volume = (soundType.getVolume() + 1.0F) / 2.0F;
         float pitch = soundType.getPitch() * 0.8F;
         world.playSound(null, pos, soundType.getBreakSound(), SoundSource.BLOCKS, volume, pitch);
@@ -79,7 +79,7 @@ public class SoundUtil {
 
     public static void playSlideSound(Level world, BlockPos pos, BlockState state, InteractionResult result) {
         if (result == InteractionResult.PASS) return;
-        SoundType soundType = state.getBlock().getSoundType(state, world, pos, null);
+        SoundType soundType = state.getSoundType();
         SoundEvent event;
         if (result == InteractionResult.SUCCESS) {
             event = SoundEvents.PISTON_CONTRACT;

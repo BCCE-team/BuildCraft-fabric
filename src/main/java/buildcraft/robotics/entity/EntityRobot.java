@@ -1078,7 +1078,7 @@ public class EntityRobot extends EntityRobotBase  {
             if (!level().isClientSide()) {
                 wearables.add(stack.split(1));
             } else {
-                player.swing(hand);
+                player.swing(hand, net.minecraft.world.item.component.SwingAnimation.DEFAULT, true);
             }
             return (level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER);
         }

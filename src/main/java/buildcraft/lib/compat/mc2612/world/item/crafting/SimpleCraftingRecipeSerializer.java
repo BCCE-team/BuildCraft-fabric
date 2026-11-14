@@ -9,7 +9,7 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 /** Compatibility copy of the pre-1.21.11 simple custom recipe serializer. */
-public class SimpleCraftingRecipeSerializer<T extends CraftingRecipe> implements RecipeSerializer<T> {
+public class SimpleCraftingRecipeSerializer<T extends CraftingRecipe>  {
     @FunctionalInterface
     public interface Factory<T extends CraftingRecipe> {
         T create(CraftingBookCategory category);
@@ -26,6 +26,11 @@ public class SimpleCraftingRecipeSerializer<T extends CraftingRecipe> implements
             (buf, recipe) -> CraftingBookCategory.STREAM_CODEC.encode(buf, recipe.category()),
             buf -> factory.create(CraftingBookCategory.STREAM_CODEC.decode(buf))
         );
+    }
+
+    /** Convert the legacy codec factory to the native immutable 26.3 serializer record. */
+    public RecipeSerializer<T> toNative() {
+        return new RecipeSerializer<>(codec, streamCodec);
     }
 
     public MapCodec<T> codec() {

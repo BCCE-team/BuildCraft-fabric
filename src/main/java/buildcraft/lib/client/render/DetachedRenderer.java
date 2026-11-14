@@ -96,7 +96,7 @@ public enum DetachedRenderer {
     public static void fromWorldOriginPre(PoseStack pose, Matrix4f matrix, float partialTicks) {
     	pose.pushPose();
     	Minecraft mc = Minecraft.getInstance();
-    	Camera camera = mc.gameRenderer.getMainCamera();
+    	Camera camera = mc.gameRenderer.mainCamera();
         Vec3 diff = Vec3.ZERO;
         diff = diff.subtract(LevelCompat.cameraPosition(camera));
         pose.translate(diff.x, diff.y, diff.z);

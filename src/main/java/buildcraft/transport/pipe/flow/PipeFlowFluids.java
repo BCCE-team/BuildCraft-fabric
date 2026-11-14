@@ -640,7 +640,8 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
         if (currentFluid.isEmpty()) return 0;
         for (Section section : sections.values()) {
             if (section.amount > 0) {
-                return Math.max(0, Math.min(15, currentFluid.getFluid().getFluidType().getLightLevel()));
+                return Math.max(0, Math.min(15, net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes.getLuminance(
+                    net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant.of(currentFluid.getFluid(), currentFluid.getComponentsPatch()))));
             }
         }
         return 0;

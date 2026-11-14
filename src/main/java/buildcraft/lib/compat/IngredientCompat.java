@@ -14,7 +14,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import buildcraft.lib.recipe.ExactComponentsIngredient;
-import net.fabricmc.fabric.api.recipe.v1.ingredient.FabricIngredient;
 
 /** Compatibility facade for Ingredient factories used by shared BuildCraft recipe code. */
 public final class IngredientCompat {
@@ -68,16 +67,6 @@ public final class IngredientCompat {
     @SuppressWarnings("unchecked")
     public static ItemStack[] getItems(Ingredient ingredient) {
         if (isEmpty(ingredient)) return new ItemStack[0];
-
-        // A fallback early-created tag ingredient can be unbound internally. Resolve its TagKey
-        // through the live registry instead of dereferencing that temporary HolderSet.
-        if (((FabricIngredient) (Object) ingredient).getCustomIngredient() == null) {
-            HolderSet<Item> values = ingredient.getValues();
-            var tag = values.unwrapKey();
-            if (tag.isPresent()) {
-                return getItems((TagKey<Item>) tag.get());
-            }
-        }
 
         return ingredient.items()
             .map(holder -> new ItemStack((Holder<Item>) holder))

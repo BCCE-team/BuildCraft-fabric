@@ -27,7 +27,7 @@ import buildcraft.transport.tile.TilePipeHolder;
 
 import net.minecraft.client.model.geom.builders.UVPair;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -350,7 +350,12 @@ private static Map<Integer, Integer> findFacadeColours(TilePipeHolder tile) {
             BlockTintSource tint = blockColours.getTintSource(source, index);
             if (tint != null) {
                 int encoded = index * Direction.values().length + side.ordinal();
-                colours.put(encoded, tint.colorInWorld(source, tile.getLevel(), tile.getBlockPos()));
+                if (tile.getLevel() instanceof BlockAndTintGetter tintLevel) {
+                    colours.put(encoded, tint.colorInWorld(source, tintLevel, tile.getBlockPos()));
+                } else {
+                    // No biome context is available while building a detached preview.
+                    colours.put(encoded, tint.color(source));
+                }
             }
         }
     }
@@ -463,7 +468,15 @@ private static int multiplyColours(int colour, int tint) {
         return data == null ? PipeModelKey.DEFAULT_KEY : data.geometryKey();
     }
 
+    // Vanilla BlockStateModel has no block-context argument. Dynamic geometry is supplied by
+    // Fabric's world-aware collector below, which can access the TilePipeHolder safely.
     @Override
+    public void collectParts(RandomSource random, List<BlockStateModelPart> parts) {
+        // Without a level/position, it is incorrect to select an arbitrary pipe's geometry.
+    }
+
+    /** Optional world-aware collector for renderer integrations that request native parts.
+     * Fabric's primary dynamic path is {@link #emitQuads}, not this overload. */
     public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random,
         List<BlockStateModelPart> parts) {
         PipeRenderData data = modelData(level, pos);

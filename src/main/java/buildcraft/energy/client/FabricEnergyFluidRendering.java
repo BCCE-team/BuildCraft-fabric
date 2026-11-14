@@ -21,7 +21,7 @@ public final class FabricEnergyFluidRendering {
                 FluidRenderingRegistry.register(still, flowing, new FluidModel.Unbaked(
                     new Material(Identifier.fromNamespaceAndPath("buildcraftenergy", path + "_still")),
                     new Material(Identifier.fromNamespaceAndPath("buildcraftenergy", path + "_flow")),
-                    null, null, null));
+                    null, null));
             }
         }
         BCFluid spout = BCEnergyFluids.SPOUT_OIL_SOURCE.get();
@@ -29,6 +29,6 @@ public final class FabricEnergyFluidRendering {
             new FluidModel.Unbaked(
                 new Material(Identifier.fromNamespaceAndPath("buildcraftenergy", "blocks/fluids/oil/cool_still")),
                 new Material(Identifier.fromNamespaceAndPath("buildcraftenergy", "blocks/fluids/oil/cool_flow")),
-                null, null, null));
+                null, null));
     }
 }

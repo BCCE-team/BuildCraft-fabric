@@ -32,7 +32,7 @@ public final class BCSiliconRecipes {
         BCDeferredRegister.create("minecraft:recipe_serializer", BCSilicon.MODID);
 
     public static final BCRegistryEntry<RecipeType<AssemblyRecipeBasic>> ASSEMBLY_TYPE = TYPES.register(
-        "assembly", () -> RecipeType.simple(Identifier.fromNamespaceAndPath(BCSilicon.MODID, "assembly")));
+        "assembly", () -> new RecipeType<AssemblyRecipeBasic>() {});
     public static final BCRegistryEntry<RecipeSerializer<AssemblyRecipe>> ASSEMBLY_SERIALIZER =
         SERIALIZERS.register("assembly", () -> AssemblyRecipe.SERIALIZER);
     public static final BCRegistryEntry<RecipeSerializer<GateLogicChangeRecipe>> GATE_CHANGE_SERIALIZER =

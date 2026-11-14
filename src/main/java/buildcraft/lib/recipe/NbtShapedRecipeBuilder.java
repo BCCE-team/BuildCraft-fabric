@@ -10,8 +10,8 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
-import net.minecraft.advancements.Criterion;
-import net.minecraft.advancements.criterion.RecipeUnlockedTrigger;
+import net.minecraft.advancements.triggers.Criterion;
+import net.minecraft.advancements.triggers.RecipeUnlockedTrigger;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -102,6 +102,11 @@ public class NbtShapedRecipeBuilder implements RecipeBuilder {
         return this;
     }
 
+    @Override
+    public ResourceKey<Recipe<?>> defaultId() {
+        return RecipeBuilder.getDefaultRecipeId(result);
+    }
+
     public Item getResult() {
         return result.getItem();
     }
@@ -113,11 +118,15 @@ public class NbtShapedRecipeBuilder implements RecipeBuilder {
         }
 
         ShapedRecipePattern pattern = ShapedRecipePattern.of(this.key, rows);
-        CraftingBookCategory bookCategory = RecipeBuilder.determineBookCategory(RecipeCategory.MISC);
-        ShapedRecipe recipe = new ShapedRecipe(group, bookCategory, pattern, result.copy(), showNotification);
+        ShapedRecipe recipe = new ShapedRecipe(
+            new Recipe.CommonInfo(showNotification),
+            new net.minecraft.world.item.crafting.CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, group),
+            pattern,
+            net.minecraft.world.item.ItemStackTemplate.fromNonEmptyStack(result)
+        );
 
         advancement.parent(ROOT_RECIPE_ADVANCEMENT)
-            .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(key))
+            .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(output.lookup(net.minecraft.core.registries.Registries.RECIPE).getOrThrow(key)))
             .rewards(AdvancementRewards.Builder.recipe(key))
             .requirements(AdvancementRequirements.Strategy.OR);
 

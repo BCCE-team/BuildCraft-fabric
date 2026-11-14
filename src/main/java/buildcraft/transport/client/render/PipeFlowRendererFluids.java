@@ -17,7 +17,7 @@ import buildcraft.transport.pipe.flow.PipeFlowFluids;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.renderer.MultiBufferSource;
+import buildcraft.lib.compat.minecraft.render.BCVertexBuffers;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
@@ -247,18 +247,19 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
 			HIDE_FACE_SIDES[face.getOpposite().get3DDataValue()], combinedLight);
 	}
 	@Override
-	public void render(PipeFlowFluids flow, float partialTicks, PoseStack matrix, MultiBufferSource buffer, int lightc,
+	public void render(PipeFlowFluids flow, float partialTicks, PoseStack matrix, BCVertexBuffers buffer, int lightc,
 			int combinedOverlay) {
 		FluidStack forRender = flow.getFluidStackForRender();
 		if (forRender.isEmpty()) {
 			return;
 		}
-		VertexConsumer fluidBuffer = buffer.getBuffer(RenderType.translucent());
+		VertexConsumer fluidBuffer = buffer.getBuffer(buildcraft.lib.compat.minecraft.render.BCRenderTypes.translucent());
 
 		double[] amounts = flow.getAmountsForRender(partialTicks);
 		Vec3[] offsets = flow.getOffsetsForRender(partialTicks);
 
-		int blocklight = forRender.getFluid().defaultFluidState().getLightEmission();// to debug
+		int blocklight = net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes.getLuminance(
+                    net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant.of(forRender.getFluid(), forRender.getComponentsPatch()));// to debug
 		IPipeHolder holder = flow.pipe.getHolder();
 		int combinedLight = holder.getPipeWorld().getBrightness(LightLayer.SKY, holder.getPipePos())<<20|blocklight<<4 ;
 

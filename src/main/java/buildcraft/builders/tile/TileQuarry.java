@@ -1549,8 +1549,7 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
         return BoundingBoxUtil.makeFrom(worldPosition, miningBox);
     }
 
-    @Override
-	public boolean hasCustomOutlineRendering(Player player) {
+    public boolean hasCustomOutlineRendering(Player player) {
 		return true;
 	}
 

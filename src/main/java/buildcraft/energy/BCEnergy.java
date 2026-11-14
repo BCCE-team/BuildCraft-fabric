@@ -77,7 +77,7 @@ public final class BCEnergy {
         EnumSpring.OIL.liquidBlock = BCEnergyFluids.SPOUT_OIL_BLOCK.get().defaultBlockState();
         EnumSpring.OIL.tileConstructor = TileSpringOil::new;
 
-        BlockEngine_BC8 engines = BCCoreBlocks.ENGINE_BC8.get();
+        BlockEngine_BC8 engines = (BlockEngine_BC8) BCCoreBlocks.ENGINE_BC8.get();
         engines.registerEngine(EnumEngineType.STONE, TileEngineStone_BC8::new);
         engines.registerEngine(EnumEngineType.IRON, TileEngineIron_BC8::new);
         engines.registerEngine(EnumEngineType.FE, TileEngineFE::new);

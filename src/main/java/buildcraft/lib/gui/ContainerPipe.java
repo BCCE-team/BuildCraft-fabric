@@ -28,7 +28,7 @@ public abstract class ContainerPipe extends MenuBC_Neptune implements IMenuBCTil
     }
 
     protected void closeInvalidClientMenu() {
-        playerInventory.player.closeContainer();
+        if (playerInventory.player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) serverPlayer.closeContainer();
     }
 
 	public boolean stillValid(Player player) {

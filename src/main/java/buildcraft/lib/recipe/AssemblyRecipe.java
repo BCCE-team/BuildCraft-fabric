@@ -220,6 +220,11 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
         return true;
     }
 
+    @Override
+    public String group() {
+        return group;
+    }
+
     public String getGroup() {
         return group;
     }
@@ -282,7 +287,7 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
             if (!tag.isEmpty()) {
                 patch.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
             }
-            return new ItemStackTemplate(item, count, patch.build());
+            return new ItemStackTemplate(item.builtInRegistryHolder(), count, patch.build());
         }
 
         private void applyLegacyData(ItemStack stack) {

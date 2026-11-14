@@ -96,7 +96,7 @@ public abstract class BlockBCTile_Neptune extends BlockBCBase_Neptune implements
 
             tileBC.onRemove(!player.isCreative() && willHarvest);
         }
-		return super.onDestroyedByPlayer(state, level, pos, player, toolStack, willHarvest, fluid);
+		return level.removeBlock(pos, false);
 	}
 
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity placer,
@@ -120,8 +120,8 @@ public abstract class BlockBCTile_Neptune extends BlockBCBase_Neptune implements
         ItemStack blockStack = ItemStack.EMPTY;
         if (blockEntity != null && blockEntity.getLevel() != null) {
             // Preserve state-sensitive pick/clone semantics (for example the shared BC8 engine block).
-            blockStack = state.getBlock().getCloneItemStack(
-                blockEntity.getLevel(), blockEntity.getBlockPos(), state, false, null
+            blockStack = state.getCloneItemStack(
+                blockEntity.getLevel(), blockEntity.getBlockPos(), false
             );
         }
         if (blockStack.isEmpty()) {
@@ -200,7 +200,6 @@ public abstract class BlockBCTile_Neptune extends BlockBCBase_Neptune implements
             TileBC_Neptune tileBC = (TileBC_Neptune) tile;
             tileBC.onNeighbourBlockChanged(state, neighbor);
         }
-		super.onNeighborChange(state, level, pos, neighbor);
 	}
 
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,

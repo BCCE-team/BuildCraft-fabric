@@ -53,8 +53,8 @@ public class TankComponent extends AbstractComponent{
 	}
 
 	public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick, AbstractContainerScreen<?> screen) {
-		int leftpos = screen.getLeftPos();
-		int toppos = screen.getTopPos();
+		int leftpos = buildcraft.lib.compat.minecraft.gui.BCContainerScreen.leftOf(screen);
+		int toppos = buildcraft.lib.compat.minecraft.gui.BCContainerScreen.topOf(screen);
 		int type = TankContainerData.getPacked(data, offset);
 		if(type != typeCache)  {
 			typeCache = type;
@@ -83,13 +83,13 @@ public class TankComponent extends AbstractComponent{
 	public void postRender(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick, AbstractContainerScreen<?> screen) {
 		if(tankx>=0&&tanky>=0)
 			if (screen instanceof ContainerScreenBase<?> base && base.getBaseTexture() != null) {
-                RenderCompat.blit(guiGraphics, base.getBaseTexture(), screen.getLeftPos() + x, screen.getTopPos() + y + 1, tankx, tanky, xs, ys);
+                RenderCompat.blit(guiGraphics, base.getBaseTexture(), buildcraft.lib.compat.minecraft.gui.BCContainerScreen.leftOf(screen) + x, buildcraft.lib.compat.minecraft.gui.BCContainerScreen.topOf(screen) + y + 1, tankx, tanky, xs, ys);
             }
 	}
 
 	public void renderTooltip(GuiGraphicsExtractor guiGraphics, int x, int y) {
-		if (super.isHovering(x - screen.getLeftPos(), y - screen.getTopPos())) {
-			RenderCompat.renderComponentTooltip(guiGraphics, screen.getMinecraft().font,
+		if (super.isHovering(x - buildcraft.lib.compat.minecraft.gui.BCContainerScreen.leftOf(screen), y - buildcraft.lib.compat.minecraft.gui.BCContainerScreen.topOf(screen))) {
+			RenderCompat.renderComponentTooltip(guiGraphics, net.minecraft.client.Minecraft.getInstance().font,
                 getToolTip(fluidCache, Math.max(0, TankContainerData.getPacked(data, offset + 2)), getCapacity()), x, y);
 		}
 	}

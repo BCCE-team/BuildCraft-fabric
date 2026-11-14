@@ -21,7 +21,7 @@ final class WrenchServiceImpl implements WrenchService {
                 if (adapter.recognizes(stack)) return true;
             } catch (RuntimeException ignored) { }
         }
-        return BCLibConfig.useWrenchTag && stack.getTags().anyMatch(tag ->
+        return BCLibConfig.useWrenchTag && stack.getItem().builtInRegistryHolder().tags().anyMatch(tag ->
             WRENCH_TAG_NAMESPACE.equals(tag.location().getNamespace())
                 && WRENCH_TAG_PATH.equals(tag.location().getPath()));
     }

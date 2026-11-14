@@ -48,6 +48,20 @@ public abstract class BCContainerScreen<T extends AbstractContainerMenu> extends
             && charTyped((char) event.codepoint(), 0)) || super.charTyped(event);
     }
 
+    /** Expose native container bounds through the BuildCraft screen boundary, not a vanilla accessor. */
+    public final int bcLeftPos() { return leftPos; }
+    public final int bcTopPos() { return topPos; }
+    public final int bcImageWidth() { return imageWidth; }
+    public final int bcImageHeight() { return imageHeight; }
+
+    public static int leftOf(AbstractContainerScreen<?> screen) {
+        return ((BCContainerScreen<?>) screen).bcLeftPos();
+    }
+
+    public static int topOf(AbstractContainerScreen<?> screen) {
+        return ((BCContainerScreen<?>) screen).bcTopPos();
+    }
+
     // Stable internal callbacks. Only this boundary constructs or consumes native event records.
     public boolean mouseClicked(double x, double y, int button) { return false; }
     public boolean mouseDragged(double x, double y, int button, double dragX, double dragY) { return false; }

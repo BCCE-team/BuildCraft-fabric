@@ -819,7 +819,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
 		
 		if (world.isClientSide()) {
 //			return super.onDestroyedByPlayer(state, world, pos, player, toolStack, willHarvest, fluid);
-			this.spawnDestroyParticles(world, player, pos, state);
+			this.spawnDestroyParticles(world, pos, state);
 			if(side == null && part == null && between ==null ) {
 				
 				world.gameEvent(GameEvent.BLOCK_DESTROY, pos, GameEvent.Context.of(player, state));
@@ -901,7 +901,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
 				}
 			}
 		}
-		return super.getExplosionResistance(state, level, pos, explosion);
+		return super.getExplosionResistance();
 	}
 
 	protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean submerged) {
@@ -917,7 +917,10 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
 
 	public void playerDestroy(Level world, Player player, BlockPos pos, BlockState state, BlockEntity be,
 			ItemStack stack) {
-		super.playerDestroy(world, player, pos, state, be, stack);
+		if (world instanceof net.minecraft.server.level.ServerLevel serverLevel
+            && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            super.playerDestroy(serverLevel, serverPlayer, pos, state, be, stack);
+        }
 	}
 
 	public boolean canBeConnectedTo(BlockGetter world, BlockPos pos, Direction facing) {

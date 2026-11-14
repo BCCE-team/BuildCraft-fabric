@@ -149,7 +149,7 @@ public class ItemSchematicSingle extends Item {
                                 }
                                 fillDeferredInventory(schematicBlock, world, placePos, itemTransactor, player);
                                 SoundUtil.playBlockPlace(world, placePos);
-                                player.swing(context.getHand());
+                                player.swing(context.getHand(), net.minecraft.world.item.component.SwingAnimation.DEFAULT, true);
                                 return InteractionResult.SUCCESS;
                             }
                         } else {
@@ -220,7 +220,7 @@ public class ItemSchematicSingle extends Item {
                     if (!refundRemainder.isEmpty()) {
                         // A nonstandard handler may accept less than it advertised during simulation. If the
                         // player's inventory filled in the meantime, drop the exact remainder instead of deleting it.
-                        player.drop(refundRemainder, false);
+                        player.drop(refundRemainder, false, net.minecraft.util.Prediction.SERVER_ONLY);
                     }
                 }
                 if (inserted <= 0) {
@@ -243,7 +243,7 @@ public class ItemSchematicSingle extends Item {
         stack.shrink(1);
 
         if (!player.getInventory().add(recorded)) {
-            player.drop(recorded, false);
+            player.drop(recorded, false, net.minecraft.util.Prediction.SERVER_ONLY);
         }
         return InteractionResult.SUCCESS;
     }
@@ -258,7 +258,7 @@ public class ItemSchematicSingle extends Item {
     }
 
 	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-        Level world = context.level();
+        Level world = net.minecraft.client.Minecraft.getInstance().level;
         if (!isUsed(stack)) {
             tooltip.accept(Component.translatable("item.buildcraftbuilders.schematic_single.blank").withStyle(BCTextFormat.GRAY));
             tooltip.accept(Component.translatable("item.buildcraftbuilders.schematic_single.blank_hint").withStyle(BCTextFormat.DARK_GRAY));

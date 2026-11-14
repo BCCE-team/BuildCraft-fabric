@@ -49,8 +49,8 @@ public class BlockEngine_BC8 extends BlockEngineBase_BC8<EnumEngineType> {
     }
 
 	public boolean canHarvestBlock(BlockState state, BlockGetter level, BlockPos pos, Player player) {
-		return super.canHarvestBlock(state.getValue(BuildCraftProperties.ENGINE_TYPE) == EnumEngineType.WOOD ?
-				Blocks.STONE.defaultBlockState() : state, level, pos, player);
+		return player.hasCorrectToolForDrops(state.getValue(BuildCraftProperties.ENGINE_TYPE) == EnumEngineType.WOOD ?
+                Blocks.STONE.defaultBlockState() : state);
 	}
     
 

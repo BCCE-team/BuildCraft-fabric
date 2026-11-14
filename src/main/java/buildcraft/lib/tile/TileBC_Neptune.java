@@ -286,13 +286,11 @@ public abstract class TileBC_Neptune extends BCBlockEntity implements IPayloadRe
     }
 
     public void onLoad() {
-        super.onLoad();
         chunkCache.invalidate();
         tileCache.invalidate();
     }
 
     public void onChunkUnloaded() {
-        super.onChunkUnloaded();
         chunkCache.invalidate();
         tileCache.invalidate();
     }

@@ -85,13 +85,13 @@ public class RenderHeatExchange implements BCGeometryRenderer<TileHeatExchange>{
             matrix.translate(0.5, 0.5, 0.5);
             switch(face) {
             case NORTH:
-                matrix.mulPose(Axis.YP.rotationDegrees(90));
+                matrix.mulPose(new org.joml.Matrix4f().rotation(Axis.YP.rotationDegrees(90)));
                 break;
             case WEST:
-                matrix.mulPose(Axis.YN.rotationDegrees(180));
+                matrix.mulPose(new org.joml.Matrix4f().rotation(Axis.YN.rotationDegrees(180)));
                 break;
             case SOUTH:
-                matrix.mulPose(Axis.YN.rotationDegrees(90));
+                matrix.mulPose(new org.joml.Matrix4f().rotation(Axis.YN.rotationDegrees(90)));
             default:
                 break;
             }
@@ -109,17 +109,17 @@ public class RenderHeatExchange implements BCGeometryRenderer<TileHeatExchange>{
             matrix.translate(0.5, 0.5, 0.5);
             switch(face) {
             case NORTH:
-                matrix.mulPose(Axis.YP.rotationDegrees(90));
+                matrix.mulPose(new org.joml.Matrix4f().rotation(Axis.YP.rotationDegrees(90)));
                 break;
             case WEST:
-                matrix.mulPose(Axis.YN.rotationDegrees(180));
+                matrix.mulPose(new org.joml.Matrix4f().rotation(Axis.YN.rotationDegrees(180)));
                 break;
             case SOUTH:
-                matrix.mulPose(Axis.YN.rotationDegrees(90));
+                matrix.mulPose(new org.joml.Matrix4f().rotation(Axis.YN.rotationDegrees(90)));
             default:
                 break;
             }
-            matrix.mulPose(Axis.YP.rotationDegrees(180));
+            matrix.mulPose(new org.joml.Matrix4f().rotation(Axis.YP.rotationDegrees(180)));
             matrix.translate(-0.5, -0.5, -0.5);
             renderInline(input, partialTicks, matrix, bb, light, overlay);
             renderOutline(output, partialTicks, matrix, bb, light, overlay);

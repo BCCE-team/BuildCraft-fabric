@@ -114,7 +114,7 @@ public class ItemSnapshot extends Item implements ICreativeTabItemProvider {
         return "item.buildcraftbuilders.template";
 	}
 	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-        Level world = context.level();
+        Level world = net.minecraft.client.Minecraft.getInstance().level;
         EnumItemSnapshotType type = EnumItemSnapshotType.getFromStack(stack);
         Snapshot.Header header = getHeader(stack);
         if (header == null) {

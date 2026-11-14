@@ -126,7 +126,7 @@ public class WidgetPhantomSlot extends Widget_Neptune<MenuBC_Neptune> {
             // BuildCraftGui cancels AbstractContainerScreen's leftPos/topPos translation
             // before drawing GUI elements, so subtracting rootElement again moves the
             // item towards the top-left corner of the screen.
-            guiGraphics.renderItem(getStack(), (int) getX(), (int) getY());
+            guiGraphics.item(getStack(), (int) getX(), (int) getY());
             if (contains(gui.mouse) && shouldDrawHighlight()) {
                 GuiUtil.drawRect(guiGraphics, this, 0x70_FF_FF_FF);
             }
@@ -146,7 +146,7 @@ public class WidgetPhantomSlot extends Widget_Neptune<MenuBC_Neptune> {
                 byte flags = 0;
                 if (button == 1) flags |= CLICK_FLAG_SINGLE;
                 if (false) flags |= CLICK_FLAG_SHIFT;
-                if (gui.mc.options.keyPickItem.isActiveAndMatches(InputConstants.Type.MOUSE.getOrCreate(button))) {
+                if (gui.mc.options.keyPickItem.getKey().equals(InputConstants.Type.MOUSE.getOrCreate(button))) {
                     flags |= CLICK_FLAG_CLONE;
                     BCLog.logger.info("clone");
                 }

@@ -21,7 +21,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.renderpearl.api.vertex.VertexFormat;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
@@ -158,7 +158,7 @@ public class LaserRenderer_BC8 {
         int max = 0;
         int count = 0;
         int sum = 0;
-		boolean ao = Minecraft.useAmbientOcclusion();
+		boolean ao = Minecraft.getInstance().options.ambientOcclusion().get();
 
         double xn = (x % 1 + 1) % 1;
         double yn = (y % 1 + 1) % 1;
@@ -199,17 +199,15 @@ public class LaserRenderer_BC8 {
         // same CPU vertex format as dynamic lasers and append them to the live level BufferSource instead. The caller
         // flushes this layer once after its world-last batch, avoiding one GPU submission per marker edge.
         LaserCompiledBuffer compiled = COMPILED_STATIC_CPU_LASERS.getUnchecked(data);
-        buildcraft.lib.compat.minecraft.render.BCVertexBuffers.BufferSource buffers = Minecraft.getInstance().renderBuffers().bufferSource();
-        net.minecraft.client.renderer.rendertype.RenderType renderType = buildcraft.lib.compat.RenderCompat.cutout();
-        VertexConsumer buffer = buffers.getBuffer(renderType);
+        VertexConsumer buffer = buildcraft.lib.client.render.compat.BCWorldGeometry.buffer(RenderCompat.cutout());
         compiled.render(pose.last().pose(), pose.last().normal(), buffer);
     }
 
     /** Flushes the shared static laser layer after a detached/world-last render batch. */
     public static void flushStaticLasers() {
-        buildcraft.lib.compat.minecraft.render.BCVertexBuffers.BufferSource buffers = Minecraft.getInstance().renderBuffers().bufferSource();
-        buffers.endBatch(buildcraft.lib.compat.RenderCompat.cutout());
-        buffers.endBatch(buildcraft.lib.compat.RenderCompat.solid());
+        if (buildcraft.lib.client.render.compat.BCWorldGeometry.isCapturing()) {
+            buildcraft.lib.client.render.compat.BCWorldGeometry.flush();
+        }
     }
 
     /** Assumes the buffer uses {@link DefaultVertexFormats#BLOCK} */

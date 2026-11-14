@@ -52,7 +52,9 @@ public class BlockTube extends BlockBCBase_Neptune {
             currentPos = currentPos.above();
         }
         if (!(world.getBlockEntity(currentPos) instanceof TileMiner)) {
-            return super.onDestroyedByPlayer(state, world, pos, player, toolStack, willHarvest, fluid);
+            // Fabric vanilla Block no longer exposes Forge's onDestroyedByPlayer hook.
+            // Tubes contain no inventory: use the same block removal operation as the BCCE base hook.
+            return world.removeBlock(pos, false);
         }
         return false;
     }

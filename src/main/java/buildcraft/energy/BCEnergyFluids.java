@@ -155,8 +155,8 @@ public final class BCEnergyFluids {
             fluidName, () -> new BCLiquidBlock(source.get(),
                 RegistryCompat.blockProperties(BlockBehaviour.Properties.of())
                     .overrideDescription("fluid_type.buildcraftenergy." + fluidName)
-                    .mapColor(MapColor.COLOR_BLACK).replaceable().noCollission()
-                    .strength(100.0f).noLootTable().liquid().pushReaction(PushReaction.DESTROY),
+                    .mapColor(MapColor.COLOR_BLACK).replaceable().noCollision()
+                    .strength(100.0f).noLootTable().liquid().pushReaction(PushReaction.POPPED),
                 sticky, data[7], data[8]));
         // The old NeoForge viscosity remains material data; the 26.3 vanilla
         // FlowingFluid flow algorithm uses slope distance, drop-off and tick rate.
@@ -179,8 +179,8 @@ public final class BCEnergyFluids {
             () -> new BCLiquidBlock(source.get(),
                 RegistryCompat.blockProperties(BlockBehaviour.Properties.of())
                     .overrideDescription("fluid_type.buildcraftenergy.oil")
-                    .mapColor(MapColor.COLOR_BLACK).replaceable().noCollission()
-                    .strength(100.0f).noLootTable().liquid().pushReaction(PushReaction.DESTROY),
+                    .mapColor(MapColor.COLOR_BLACK).replaceable().noCollision()
+                    .strength(100.0f).noLootTable().liquid().pushReaction(PushReaction.POPPED),
                 true, 10, 40));
         BCFluid.Properties properties = new BCFluid.Properties(source, flowing,
             SPOUT_OIL_BLOCK::get, () -> OIL_BUCKET.get(0).get())

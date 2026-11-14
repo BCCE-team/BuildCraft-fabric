@@ -53,8 +53,7 @@ public final class FluidStack {
 
     @Nullable
     public <T> T get(DataComponentType<T> type) {
-        var value = components.get(type);
-        return value == null ? null : value.orElse(null);
+        return components.get(net.minecraft.core.component.DataComponentMap.EMPTY, type);
     }
 
     public void setAmount(int amount) {

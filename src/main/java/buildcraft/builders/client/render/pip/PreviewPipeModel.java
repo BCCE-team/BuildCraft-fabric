@@ -33,7 +33,7 @@ import buildcraft.transport.internal.pluggable.PluggableDefinition;
 import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.wire.WireManager;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
+import buildcraft.lib.compat.minecraft.render.BCVertexBuffers;
 import buildcraft.lib.compat.mc2612.client.renderer.block.model.BakedQuad;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -180,12 +180,12 @@ public final class PreviewPipeModel {
             // The SubmitNodeCollector callbacks run AFTER the caller has popped its pose.
             // Recreate a PoseStack from the deferred pose instead of keeping a mutable stack.
             collector.submitCustomGeometry(pose, RenderCompat.cutout(), (at, consumer) -> {
-                MultiBufferSource buffers = requested -> requested.equals(RenderCompat.cutout())
+                BCVertexBuffers buffers = requested -> requested.equals(RenderCompat.cutout())
                     ? consumer : DISCARD;
                 renderDynamic(mesh, copyPose(at), buffers, light);
             });
             collector.submitCustomGeometry(pose, RenderCompat.translucent(), (at, consumer) -> {
-                MultiBufferSource buffers = requested -> requested.equals(RenderCompat.translucent())
+                BCVertexBuffers buffers = requested -> requested.equals(RenderCompat.translucent())
                     ? consumer : DISCARD;
                 renderDynamic(mesh, copyPose(at), buffers, light);
             });
@@ -200,7 +200,7 @@ public final class PreviewPipeModel {
     }
 
     /** Render-only gate/pulsar/glass-facade path. Never ticks the reconstructed pipe. */
-    private static void renderDynamic(Mesh mesh, PoseStack pose, MultiBufferSource buffers, int light) {
+    private static void renderDynamic(Mesh mesh, PoseStack pose, BCVertexBuffers buffers, int light) {
         for (PipePluggable plug : mesh.dynamicPlugs()) {
             try {
                 renderPlug(plug, pose, buffers, light);
@@ -211,7 +211,7 @@ public final class PreviewPipeModel {
     }
 
     private static <P extends PipePluggable> void renderPlug(P plug, PoseStack pose,
-        MultiBufferSource buffers, int light) {
+        BCVertexBuffers buffers, int light) {
         IPlugDynamicRenderer<P> renderer = PipeRegistryClient.getPlugRenderer(plug);
         if (renderer != null) renderer.render(plug, 0, pose, buffers, light, OverlayTexture.NO_OVERLAY);
     }

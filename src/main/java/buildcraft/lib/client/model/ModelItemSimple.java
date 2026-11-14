@@ -47,7 +47,7 @@ public class ModelItemSimple implements BakedModel {
         ItemTransform ground = def(0, 0, 0, 0, 3, 0, 0.25);
         ItemTransform fixed = def(0, 0, 0, 0, 0, 0, 0.5);
         TRANSFORM_BLOCK =
-            new ItemTransforms(thirdp_left, thirdp_right, firstp_left, firstp_right, head, gui, ground, fixed, fixed, com.google.common.collect.ImmutableMap.of());
+            new ItemTransforms(thirdp_left, thirdp_right, firstp_left, firstp_right, head, gui, ground, fixed, fixed);
 
         ItemTransform item_head = def(0, 0, 0, 0, 0, 0, 1);
         ItemTransform item_gui = def(0, 90, 0, 0, 0, 0, 1);
@@ -56,7 +56,7 @@ public class ModelItemSimple implements BakedModel {
         firstp_left = def(0, 225, 0, 0, 0, -4, 0.4);
         firstp_right = def(0, 45, 0, 0, 0, -4, 0.4);
         TRANSFORM_PLUG_AS_ITEM = new ItemTransforms(thirdp_left, thirdp_right, firstp_left, firstp_right,
-            item_head, item_gui, item_ground, item_fixed, item_fixed, com.google.common.collect.ImmutableMap.of());
+            item_head, item_gui, item_ground, item_fixed, item_fixed);
         TRANSFORM_PLUG_AS_ITEM_BIGGER = scale(TRANSFORM_PLUG_AS_ITEM, 1.8);
 
         thirdp_left = def(75, 45, 0, 0, 2.5, 0, 0.375);
@@ -65,7 +65,7 @@ public class ModelItemSimple implements BakedModel {
         firstp_right = def(0, 225, 0, 0, 0, 0, 0.4);
         gui = def(30, 135, 0, -3, 1.5, 0, 0.625);
         TRANSFORM_PLUG_AS_BLOCK =
-            new ItemTransforms(thirdp_left, thirdp_right, firstp_left, firstp_right, head, gui, ground, fixed, fixed, com.google.common.collect.ImmutableMap.of());
+            new ItemTransforms(thirdp_left, thirdp_right, firstp_left, firstp_right, head, gui, ground, fixed, fixed);
 
         ground = def(0, 0, 0, 0, 2, 0, 0.5);
         head = def(0, 180, 0, 0, 13, 7, 1);
@@ -76,7 +76,7 @@ public class ModelItemSimple implements BakedModel {
         fixed = def(0, 180, 0, 0, 0, 0, 1);
         gui = def(0, 0, 0, 0, 0, 0, 1);
         TRANSFORM_ITEM =
-            new ItemTransforms(thirdp_left, thirdp_right, firstp_left, firstp_right, head, gui, ground, fixed, fixed, com.google.common.collect.ImmutableMap.of());
+            new ItemTransforms(thirdp_left, thirdp_right, firstp_left, firstp_right, head, gui, ground, fixed, fixed);
     }
 
     private static ItemTransforms scale(ItemTransforms from, double by) {
@@ -89,7 +89,7 @@ public class ModelItemSimple implements BakedModel {
         ItemTransform ground = scale(from.ground(), by);
         ItemTransform fixed = scale(from.fixed(), by);
         return new ItemTransforms(thirdperson_left, thirdperson_right, firstperson_left, firstperson_right, head,
-            gui, ground, fixed, fixed, com.google.common.collect.ImmutableMap.of());
+            gui, ground, fixed, fixed);
     }
 
     private static ItemTransform scale(ItemTransform from, double by) {

@@ -295,9 +295,8 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements IDebu
                     Direction previousDirection = currentDirection;
                     currentDirection = current;
                     if (manual) manuallySelectedDirection = true;
-                    // The MJ/FE output capability is sided by currentDirection. Invalidate NeoForge capability
-                    // caches whenever that side changes so queries see the current output face.
-                    level.invalidateCapabilities(worldPosition);
+                    // Fabric BlockApiLookup resolves the sided capability from the current engine state.
+                    // The neighbour notifications below refresh adjacent transport connections.
                     sendNetworkUpdate(NET_RENDER_DATA);
                     redrawBlock();
                     markChunkDirty();
@@ -327,7 +326,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements IDebu
         }
         Direction previousDirection = currentDirection;
         currentDirection = preferredDirection;
-        level.invalidateCapabilities(worldPosition);
+        // Directional Fabric lookups are resolved on demand; refresh neighbour connections below.
         sendNetworkUpdate(NET_RENDER_DATA);
         redrawBlock();
         markChunkDirty();

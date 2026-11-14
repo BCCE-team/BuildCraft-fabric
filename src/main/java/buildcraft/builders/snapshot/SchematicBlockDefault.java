@@ -545,7 +545,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
         } else {
             Stream.of(Direction.values())
                 .map(Direction::getUnitVec3i)
-                .map(BlockPos::new)
+                .map(v -> new BlockPos(v.getX(), v.getY(), v.getZ()))
                 .forEach(updateBlockOffsets::add);
             updateBlockOffsets.add(BlockPos.ZERO);
         }

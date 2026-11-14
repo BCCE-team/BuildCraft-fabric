@@ -16,6 +16,6 @@ public final class BlockEntityTypeCompat {
         BlockEntityType.BlockEntitySupplier<? extends T> factory,
         Block... blocks
     ) {
-        return (BlockEntityType<T>) new BlockEntityType((BlockEntityType.BlockEntitySupplier) factory, Set.of(blocks), false);
+        return (BlockEntityType<T>) new BlockEntityType((BlockEntityType.BlockEntitySupplier) factory, Set.of(blocks));
     }
 }

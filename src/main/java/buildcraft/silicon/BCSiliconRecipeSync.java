@@ -79,7 +79,12 @@ public final class BCSiliconRecipeSync {
         if (!(player.level() instanceof ServerLevel level)) return;
         try {
             List<RecipeHolder<AssemblyRecipeBasic>> recipes =
-                level.recipeAccess().recipeMap().byType(BCSiliconRecipes.ASSEMBLY_TYPE.get());
+                level.recipeAccess().getRecipes().stream()
+                    .filter(holder -> holder.value().getType() == BCSiliconRecipes.ASSEMBLY_TYPE.get())
+                    .map(holder -> { @SuppressWarnings("unchecked")
+                        RecipeHolder<AssemblyRecipeBasic> assembly = (RecipeHolder<AssemblyRecipeBasic>) holder;
+                        return assembly;
+                    }).toList();
             // Builtin and addon recipe serializers use the same packet format.
             // Preserve recipe-holder IDs, ingredient counts and item components.
             List<RecipeHolder<AssemblyRecipeBasic>> encoded = recipes.stream()

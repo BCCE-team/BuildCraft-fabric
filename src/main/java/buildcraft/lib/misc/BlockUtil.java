@@ -128,7 +128,7 @@ public final class BlockUtil {
             }
 
             BlockState state = world.getBlockState(pos);
-            if (!state.getBlock().canHarvestBlock(state, world, pos, fakePlayer)) {
+            if (!fakePlayer.hasCorrectToolForDrops(state)) {
                 return false;
             }
 
@@ -199,7 +199,7 @@ public final class BlockUtil {
         double dz = world.getRandom().nextFloat() * var + (1.0F - var) * 0.5D;
         ItemEntity entityitem = new ItemEntity(world, pos.getX() + dx, pos.getY() + dy, pos.getZ() + dz, stack);
 
-        entityitem.lifespan = forcedLifespan;
+        entityitem.age = Math.max(0, 6000 - Math.max(1, forcedLifespan));
         entityitem.setDefaultPickUpDelay();;
 
         world.addFreshEntity(entityitem);
@@ -327,7 +327,7 @@ public final class BlockUtil {
      * */
     public static Fluid getFluid(Block block) {
         if (block instanceof LiquidBlock liquidBlock) {
-            return liquidBlock.fluid;
+            return liquidBlock.defaultBlockState().getFluidState().getType();
         }
         return Fluids.EMPTY;
     }
@@ -343,7 +343,7 @@ public final class BlockUtil {
 
     public static Fluid getFluidWithFlowing(Block block) {
         if (block instanceof LiquidBlock) {
-            return ((LiquidBlock) block).fluid;
+            return block.defaultBlockState().getFluidState().getType();
         }
         return Fluids.EMPTY;
     }
@@ -411,10 +411,7 @@ public final class BlockUtil {
             BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), direction, pos, false);
             UseOnContext context = new UseOnContext(world, player, InteractionHand.MAIN_HAND, stack, hit);
 
-            InteractionResult result = stack.getItem().onItemUseFirst(stack, context);
-            if (result == InteractionResult.PASS) {
-                result = stack.useOn(context);
-            }
+            InteractionResult result = stack.useOn(context);
             if (result == InteractionResult.PASS) {
                 result = stack.getItem().use(world, player, InteractionHand.MAIN_HAND);
             }

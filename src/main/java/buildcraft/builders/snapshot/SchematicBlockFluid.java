@@ -61,8 +61,8 @@ public class SchematicBlockFluid implements ISchematicBlock {
     @Override
     public Set<BlockPos> getRequiredBlockOffsets() {
         return Stream.concat((Direction.Plane.HORIZONTAL.stream()), Stream.of(Direction.DOWN))
-            .map(Direction::getNormal)
-            .map(BlockPos::new)
+            .map(Direction::getUnitVec3i)
+            .map(v -> new BlockPos(v.getX(), v.getY(), v.getZ()))
             .collect(Collectors.toSet());
     }
 
@@ -114,8 +114,8 @@ public class SchematicBlockFluid implements ISchematicBlock {
         if (placed) {
             Stream.concat(
                 Stream.of(Direction.values())
-                    .map(Direction::getNormal)
-                    .map(BlockPos::new),
+                    .map(Direction::getUnitVec3i)
+                    .map(v -> new BlockPos(v.getX(), v.getY(), v.getZ())),
                 Stream.of(BlockPos.ZERO)
             )
                 .map(blockPos::offset)

@@ -166,7 +166,8 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
             blockSnapshot2.restore();
             BlockEntity tile = w.getBlockEntity(p);
             if (tile != null) {
-                tile.onLoad();
+                if (tile instanceof buildcraft.lib.tile.TileBC_Neptune bcTile) bcTile.onLoad();
+                tile.setChanged();
             }
         }
 
@@ -185,7 +186,8 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
                 blockSnapshot2.restore();
                 BlockEntity tile = w.getBlockEntity(r.pos);
                 if (tile != null) {
-                    tile.onLoad();
+                    if (tile instanceof buildcraft.lib.tile.TileBC_Neptune bcTile) bcTile.onLoad();
+                tile.setChanged();
                 }
             } else {
                 SoundUtil.playBlockBreak(w, p, blockSnapshot2.getState());
@@ -195,13 +197,15 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
                     blockSnapshot1.restore();
                     BlockEntity tile1 = w.getBlockEntity(r.pos);
                     if (tile1 != null) {
-                        tile1.onLoad();
+                        if (tile1 instanceof buildcraft.lib.tile.TileBC_Neptune bcTile) bcTile.onLoad();
+                tile1.setChanged();
                     }
 
                     blockSnapshot2.restore();
                     BlockEntity tile2 = w.getBlockEntity(p);
                     if (tile2 != null) {
-                        tile2.onLoad();
+                        if (tile2 instanceof buildcraft.lib.tile.TileBC_Neptune bcTile) bcTile.onLoad();
+                tile2.setChanged();
                     }
                 } else {
                     SoundUtil.playBlockPlace(w, p, stripesStateOld);
@@ -254,7 +258,8 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
             blockSnapshot1.restore();
             BlockEntity tile = w.getBlockEntity(r.pos);
             if (tile != null) {
-                tile.onLoad();
+                if (tile instanceof buildcraft.lib.tile.TileBC_Neptune bcTile) bcTile.onLoad();
+                tile.setChanged();
             }
         }
 
@@ -264,7 +269,7 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
         if (!canceled) {
             ServerPlayer player = buildcraft.lib.misc.FakePlayerProvider.INSTANCE.getFakePlayer((ServerLevel) w, owner, r.pos);
             player.getInventory().clearContent();
-            player.getInventory().setItem(player.getInventory().selected, r.stack);
+            player.getInventory().setItem(player.getInventory().getSelectedSlot(), r.stack);
             InteractionResult result = r.stack.useOn(
                 new UseOnContext(player.level(), player, InteractionHand.MAIN_HAND, r.stack,
                     new BlockHitResult(Vec3.atCenterOf(r.pos), r.dir.getOpposite(), r.pos, false)));
@@ -280,7 +285,8 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
                 blockSnapshot1.restore();
                 BlockEntity tile = w.getBlockEntity(r.pos);
                 if (tile != null) {
-                    tile.onLoad();
+                    if (tile instanceof buildcraft.lib.tile.TileBC_Neptune bcTile) bcTile.onLoad();
+                tile.setChanged();
                 }
             }
         }
@@ -303,7 +309,8 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
                 blockSnapshot1.restore();
                 BlockEntity tile = w.getBlockEntity(r.pos);
                 if (tile != null) {
-                    tile.onLoad();
+                    if (tile instanceof buildcraft.lib.tile.TileBC_Neptune bcTile) bcTile.onLoad();
+                tile.setChanged();
                 }
 
                 blockSnapshot2.restore();
@@ -331,7 +338,8 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
         if (!canceled) {
             stripesTileNew.loadWithComponents(net.minecraft.world.level.storage.TagValueInput.create(
                 net.minecraft.util.ProblemReporter.DISCARDING, w.registryAccess(), stripesNBTOld));
-            stripesTileNew.onLoad();
+            if (stripesTileNew instanceof buildcraft.lib.tile.TileBC_Neptune bcTile) bcTile.onLoad();
+                stripesTileNew.setChanged();
         }
 
         IPipeHolder stripesPipeHolderNew = CapUtil.getCapability(w, stripesPosNew, PipeApi.CAP_PIPE_HOLDER, null);

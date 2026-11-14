@@ -290,7 +290,7 @@ public class PluggablePulsar extends PipePluggable {
 
     @Override
     public PluggableModelKey getModelRenderKey(RenderType layer) {
-        if (layer == RenderType.cutout()) return new KeyPlugPulsar(side);
+        if (layer == buildcraft.lib.compat.minecraft.render.BCRenderTypes.cutout()) return new KeyPlugPulsar(side);
         return null;
     }
 

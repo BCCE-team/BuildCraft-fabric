@@ -501,13 +501,13 @@ public class Tank implements IFluidHandlerAdv, IFluidHandler, IFluidTank {
         }
 
         // Defensive fallbacks for loaders/modpacks that suppress the normal item capability registration.
-        if (stack.getItem() instanceof BucketItem bucketItem && bucketItem.content != Fluids.EMPTY) {
+        if (stack.getItem() instanceof BucketItem bucketItem && bucketItem.getContent() != Fluids.EMPTY) {
             if (space < 1000) {
                 return null;
             }
             return new FluidGetResult(
                 new ItemStack(Items.BUCKET),
-                new FluidStack(bucketItem.content, 1000)
+                new FluidStack(bucketItem.getContent(), 1000)
             );
         }
         if (stack.getItem() instanceof ItemFragileFluidContainer) {

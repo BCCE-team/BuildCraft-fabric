@@ -10,6 +10,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 public class ChunkUtil {
 
@@ -18,7 +19,7 @@ public class ChunkUtil {
     }
 
     public static LevelChunk getChunk(Level Level, ChunkPos pos, boolean force) {
-        return getChunk(Level, pos.x, pos.z, force);
+        return getChunk(Level, pos.x(), pos.z(), force);
     }
 
     public static LevelChunk getChunk(Level level, int x, int z, boolean force) {

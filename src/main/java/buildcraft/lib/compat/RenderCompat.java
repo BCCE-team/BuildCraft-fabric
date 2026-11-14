@@ -203,6 +203,15 @@ public final class RenderCompat {
         BCGraphics.blit(graphics, texture, x, y, u, v, width, height, sourceWidth, sourceHeight, texWidth, texHeight);
     }
 
+    /** Full-source, ARGB-coloured GUI blit for 26.3 (render-state extraction). */
+    public static void blit(GuiGraphicsExtractor graphics,
+            com.mojang.renderpearl.api.pipeline.RenderPipeline pipeline, Identifier texture,
+            int x, int y, float u, float v, int width, int height,
+            int sourceWidth, int sourceHeight, int texWidth, int texHeight, int argb) {
+        graphics.blit(pipeline, texture, x, y, u, v, width, height,
+            sourceWidth, sourceHeight, texWidth, texHeight, argb);
+    }
+
     public static void setShader(Object shader) {
     }
 

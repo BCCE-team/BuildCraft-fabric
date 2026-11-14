@@ -56,11 +56,11 @@ public final class GuiUtil {
     }
 
     public static int getScreenWidth() {
-        return MC.screen == null ? MC.getWindow().getGuiScaledWidth() : MC.screen.width;
+        return MC.getWindow().getGuiScaledWidth();
     }
 
     public static int getScreenHeight() {
-        return MC.screen == null ? MC.getWindow().getGuiScaledHeight() : MC.screen.height;
+        return MC.getWindow().getGuiScaledHeight();
     }
 
     public static IGuiArea moveRectangleToCentre(GuiRectangle area) {
@@ -312,7 +312,7 @@ public final class GuiUtil {
         }
         for (int i = 1; i < list.size(); i++) {
             Component line = list.get(i);
-            list.set(i, line.copy().setStyle(line.getStyle().applyFormat(BCTextFormat.GRAY)));
+            list.set(i, line.copy().setStyle(BCTextFormat.GRAY.apply(line.getStyle())));
         }
         return list;
     }

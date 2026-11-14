@@ -128,7 +128,7 @@ final class BuilderIndicatorLights {
     }
 
     private static boolean isVisible(Level level, BlockPos pos, BlockState state, Direction face) {
-        return Block.shouldRenderFace(level, pos, state, level.getBlockState(pos.relative(face)), face);
+        return Block.shouldRenderFace(state, level.getBlockState(pos.relative(face)), face);
     }
 
     private static void renderFace(Direction face, Matrix4f pose, Matrix3f normal, VertexConsumer consumer,

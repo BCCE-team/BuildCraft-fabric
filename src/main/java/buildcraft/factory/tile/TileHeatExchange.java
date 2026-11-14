@@ -329,8 +329,10 @@ markCheckNeighbours();
     }
 
     private void invalidateCapabilityCache() {
-        if (level != null) {
-            level.invalidateCapabilities(worldPosition);
+        if (level != null && !level.isClientSide()) {
+            // Fabric's providers resolve this tile's current section state on demand.
+            // Neighbour notification is needed when a multiblock section is split.
+            level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
         }
     }
 

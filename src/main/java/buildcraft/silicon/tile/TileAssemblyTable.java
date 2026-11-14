@@ -148,7 +148,7 @@ public class TileAssemblyTable extends TileLaserTableBase implements MenuProvide
         boolean changed = false;
         // RecipeManager is replaced during /reload; client/server caches must discard obsolete instructions.
         // On 1.21.11+ the recipe-map identity is the reload generation.
-        Object manager = ((net.minecraft.server.level.ServerLevel) level).recipeAccess().recipeMap();
+        Object manager = ((net.minecraft.server.level.ServerLevel) level).recipeAccess();
         Object recipeMap = manager;
         if (lastVanillaRecipeManager != manager || lastVanillaRecipeMap != recipeMap) {
             lastVanillaRecipeManager = manager;
@@ -174,7 +174,11 @@ public class TileAssemblyTable extends TileLaserTableBase implements MenuProvide
         }
         if (isDirty) {
             int previousSize = recipesStates.size();
-            for (RecipeHolder<AssemblyRecipeBasic> holder : ((net.minecraft.server.level.ServerLevel) level).recipeAccess().recipeMap().byType(BCSiliconRecipes.ASSEMBLY_TYPE.get())) {
+            for (net.minecraft.world.item.crafting.RecipeHolder<?> rawHolder :
+                ((net.minecraft.server.level.ServerLevel) level).recipeAccess().getRecipes()) {
+                if (rawHolder.value().getType() != BCSiliconRecipes.ASSEMBLY_TYPE.get()) continue;
+                @SuppressWarnings("unchecked")
+                RecipeHolder<AssemblyRecipeBasic> holder = (RecipeHolder<AssemblyRecipeBasic>) rawHolder;
                 Identifier recipeId = holder.id().identifier();
                 if (RecipeBlacklist.isDenied("assembly_table", recipeId)) continue;
                 AssemblyRecipeBasic recipe = holder.value();

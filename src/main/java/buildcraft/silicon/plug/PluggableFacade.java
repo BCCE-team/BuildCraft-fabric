@@ -205,7 +205,7 @@ public class PluggableFacade extends PipePluggable {
 
     public float getExplosionResistance(@Nullable Entity exploder, Explosion explosion) {
         BlockState state = states.phasedStates[activeState].stateInfo.state;
-        return state.getBlock().getExplosionResistance(state, new SingleBlockAccess(state), BlockPos.ZERO, explosion);
+        return state.getBlock().getExplosionResistance();
     }
 
     public ItemStack getPickStack() {

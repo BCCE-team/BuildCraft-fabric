@@ -70,7 +70,10 @@ public final class FluidUtil {
             @Override public boolean isFluidValid(int index, FluidStack stack) {
                 if (stack == null || stack.isEmpty()) return false;
                 try (Transaction tx = FabricTransactionScope.begin()) {
-                    return views(storage).get(index).insert(variant(stack), DROPLETS_PER_MB, tx) >= DROPLETS_PER_MB;
+                    StorageView<FluidVariant> view = views(storage).get(index);
+                    if (!view.isResourceBlank() && !view.getResource().equals(variant(stack))) return false;
+                    if (view.getAmount() + DROPLETS_PER_MB > view.getCapacity()) return false;
+                    return storage.insert(variant(stack), DROPLETS_PER_MB, tx) >= DROPLETS_PER_MB;
                 }
             }
             @Override public int fill(FluidStack offered, FluidAction action) {

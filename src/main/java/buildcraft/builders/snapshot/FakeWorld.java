@@ -91,6 +91,12 @@ public abstract class FakeWorld extends Level {
         this.dayTimePerTick = 1.0F;
     }
 
+    @Override
+    public java.util.Collection<? extends net.minecraft.world.entity.PartEntity<?>> dragonParts() {
+        // Detached blueprint worlds have no live multipart entities.
+        return java.util.List.of();
+    }
+
     public void clear() {
         chunkProvider.chunks.clear();
         entities.clear();

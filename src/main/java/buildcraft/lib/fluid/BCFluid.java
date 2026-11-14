@@ -203,7 +203,7 @@ public abstract class BCFluid extends FlowingFluid {
 			FluidState fluidstate = blockstate.getFluidState();
 			if (fluidstate.getType().isSame(this) && canPassThroughWall0(direction, p_76036_, p_76037_,
 					p_76038_, blockpos, blockstate)) {
-                boolean canCreateSource = fluidstate.canConvertToSource(p_76036_, blockpos);
+                boolean canCreateSource = canConvertToSource(p_76036_);
                 if (fluidstate.isSource() && canCreateSource) {
                     ++j;
                 }

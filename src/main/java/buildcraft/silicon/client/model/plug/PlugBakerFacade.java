@@ -202,8 +202,9 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
                 Float.intBitsToFloat((int) (packedUv >>> 32)),
                 Float.intBitsToFloat((int) packedUv)
             );
-            // NeoForge carries static vertex colour/alpha separately from BlockColor tinting.
-            vertex.colouri(quad.bakedColors().color(i));
+            // Fabric vanilla BakedQuad does not carry an independent per-vertex colour array.
+            // Preserve material tint indices and alpha instead of trying to access the removed NeoForge extension.
+            vertex.colouri(0xFFFFFFFF);
             Direction face = quad.direction();
             if (face != null) {
                 var normal = face.getUnitVec3i();

@@ -46,7 +46,7 @@ public abstract class AbstractComponent/* extends GuiComponent */implements Cont
 	
 
 	public boolean onClick(double x, double y, int mouse) {
-		if(isHovering((int)(x-screen.getLeftPos()), (int)(y-screen.getTopPos()))) {
+		if(isHovering((int)(x-buildcraft.lib.compat.minecraft.gui.BCContainerScreen.leftOf(screen)), (int)(y-buildcraft.lib.compat.minecraft.gui.BCContainerScreen.topOf(screen)))) {
 			isPressing = true;
 			return ClickedAction(x, y, mouse);
 		}
@@ -54,7 +54,7 @@ public abstract class AbstractComponent/* extends GuiComponent */implements Cont
 	}
 	
 	public boolean ClickedAction(double x, double y, int mouse) {
-		Minecraft mc = screen.getMinecraft();
+		Minecraft mc = net.minecraft.client.Minecraft.getInstance();
 		mc.gameMode.handleInventoryButtonClick(screen.getMenu().containerId, offset);
 		return true;
 	}
