@@ -67,6 +67,7 @@ import buildcraft.lib.net.MessageGuideState;
 import buildcraft.lib.net.MessageManager;
 import buildcraft.lib.misc.ItemStackUtil;
 import buildcraft.lib.compat.RenderCompat;
+import buildcraft.lib.compat.minecraft.gui.BCGuiInput;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.input.MouseButtonInfo;
 
@@ -1765,7 +1766,7 @@ public final class GuiGuide extends Screen {
     }
 
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (mouseClicked(event.x(), event.y(), event.button())) {
+        if (mouseClicked(event.x(), event.y(), BCGuiInput.legacyButton(event.button()))) {
             return true;
         }
         return false;

@@ -60,6 +60,8 @@ public final class BuildCraftFabric263 implements ModInitializer {
         BCLib.finishModuleRegistration();
         // Fabric calls addons' ModInitializer instances after their BCCE dependency.
         // Seal extension registries at server startup, not in our initializer.
+        // Do not scan facade materials during SERVER_STARTING: saved facades
+        // retain their BlockState even before BCSilicon's SERVER_STARTED scan.
         ServerLifecycleEvents.SERVER_STARTING.register(server -> BCLib.finishApiRegistration());
         ServerLifecycleEvents.SERVER_STARTED.register(FabricServerState::started);
         ServerLifecycleEvents.SERVER_STOPPED.register(FabricServerState::stopped);

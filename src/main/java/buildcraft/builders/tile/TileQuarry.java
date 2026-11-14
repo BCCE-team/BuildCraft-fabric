@@ -712,6 +712,11 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
     }
 
     private void check(BlockPos blockPos) {
+        if (!level.hasChunkAt(blockPos)) {
+            // Fabric may not have the full frame area loaded yet. Treating an unloaded
+            // chunk as air can create spurious frame placement/break tasks.
+            return;
+        }
         frameBreakBlockPoses.remove(blockPos);
         framePlaceFramePoses.remove(blockPos);
         if (shouldBeFrame(blockPos)) {
@@ -745,12 +750,35 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
         super.clearRemoved();
     }
 
+    /**
+     * Minecraft 26.3 removes block entities through preRemoveSideEffects, not the old
+     * Block.onRemove(BlockState, Level, ...) callback. Chunk unloading only invokes
+     * setRemoved(), so do not destroy the frame from setRemoved/onChunkUnloaded.
+     */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (state.is(BCBuildersBlocks.QUARRY.get())) {
+            onRemove(true);
+        }
+        super.preRemoveSideEffects(pos, state);
+    }
+
+    private boolean frameCleanupStarted;
+
     @Override
     public void onRemove(boolean dropSelf) {
-        if (level instanceof ServerLevel) {
+        // Also used by the legacy explosion callback: never process the same frame twice.
+        if (!frameCleanupStarted && level instanceof ServerLevel serverLevel) {
+            frameCleanupStarted = true;
+            // Use the saved bounding box, not only the runtime framePoses cache: the cache
+            // may still be empty during chunk loading or after an interrupted scan.
+            QuarryFrameCleanup.clean(serverLevel, worldPosition, frameBox, framePoses);
+            // Delete the drill's temporary collision blocks before releasing tickets.
+            clearQuarryCollisionBlocks();
             ChunkLoaderManager.releaseChunksFor(this);
+            // Stop a pending task from placing another frame after this tile was removed.
+            currentTask = null;
         }
-        clearQuarryCollisionBlocks();
         super.onRemove(dropSelf);
     }
 
@@ -922,6 +950,7 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
 
     @Override
     public void update() {
+        if (frameCleanupStarted || level == null || isRemoved()) return;
         if (drillPos == null) {
             collisionBoxes = ImmutableList.of();
             collisionDrillPos = null;
@@ -1319,6 +1348,9 @@ public class TileQuarry extends TileBC_Neptune implements IDebuggable, IChunkLoa
     }
 
     private void removeCollisionBlock(BlockPos pos) {
+        // A collision block removes itself when its chunk is next loaded. Never
+        // synchronously load distant chunks during Quarry teardown.
+        if (!level.hasChunkAt(pos)) return;
         BlockState state = level.getBlockState(pos);
         if (isQuarryCollisionBlock(state) && canClaimCollisionBlock(pos)) {
             level.setBlock(pos, state.getFluidState().createLegacyBlock(), 3);

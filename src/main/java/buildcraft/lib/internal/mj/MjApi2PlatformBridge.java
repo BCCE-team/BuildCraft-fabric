@@ -16,6 +16,7 @@ import buildcraft.api.v2.machine.MachineHostProvider;
 import buildcraft.lib.internal.capabilities.IBCCapabilityProvider;
 import buildcraft.lib.compat.neoforge263.fluids.IFluidHandler.FluidAction;
 import buildcraft.api.v2.energy.MjTransferResult;
+import buildcraft.lib.internal.api.v2.MachineRuntimeView;
 import buildcraft.lib.internal.api.v2.energy.MjRuntimeLookup;
 import buildcraft.lib.internal.transfer.FabricTransactionScope;
 import java.util.EnumSet;
@@ -79,7 +80,12 @@ public final class MjApi2PlatformBridge {
             Optional<MjPort> port = provider.mjPort(side);
             if (port.isPresent()) return port.get();
         }
-        if (tile instanceof MachineView machine) {
+        // MachineRuntimeView.mjPort() delegates to MjRuntimeLookup.port(),
+        // which calls Backend.port() -> MJ_PORT.find() -> this fallback.
+        // Calling it here creates an infinite lookup cycle (StackOverflowError).
+        // These BCCE runtime views are resolved through their native legacy
+        // capabilities below; explicit MjPortProvider endpoints remain preferred.
+        if (tile instanceof MachineView machine && !(tile instanceof MachineRuntimeView)) {
             Optional<MjPort> port = machine.mjPort(side);
             if (port.isPresent()) return port.get();
         }

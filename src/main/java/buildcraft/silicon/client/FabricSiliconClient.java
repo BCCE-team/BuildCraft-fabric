@@ -36,8 +36,8 @@ public final class FabricSiliconClient {
             LensItemTintSource.MAP_CODEC);
         BCSiliconClientGuis.clientInit(PlatformClientRegistration.screens());
         BCSiliconClientRenderers.register(PlatformClientRegistration.renderers());
-        // Facade state scanning mirrors NeoForge's LevelEvent.Load timing: the
-        // client world and its registry access are available when this fires.
+        // Scan facade materials on JOIN, after the client registries and API
+        // extensions are ready; early packet reads preserve saved BlockStates.
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> BCSilicon.initializeFacadeStates());
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) ->
             buildcraft.silicon.BCSiliconRecipeSync.Client.clear());

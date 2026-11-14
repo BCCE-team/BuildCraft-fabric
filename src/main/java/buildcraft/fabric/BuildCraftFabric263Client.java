@@ -27,6 +27,8 @@ public final class BuildCraftFabric263Client implements ClientModInitializer {
         // complete by CLIENT_STARTED. Do not seal them in onInitializeClient().
         ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
             buildcraft.lib.BCLib.finishApiRegistration();
+            // Facade scan happens on JOIN; early NBT/packet reads preserve their
+            // original BlockState and no longer force an incomplete scan.
             FabricModelLifecycle263.refreshIfAtlasChanged(client);
         });
         // A fresh TextureAtlas is published at the end of every F3+T reload.

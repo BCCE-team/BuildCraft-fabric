@@ -6,10 +6,6 @@
 
 package buildcraft.builders.block;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import buildcraft.builders.BCBuildersBlocks;
 import buildcraft.builders.tile.TileQuarry;
 import buildcraft.lib.block.BlockBCTile_Neptune;
 import buildcraft.lib.block.IBlockWithFacing;
@@ -21,21 +17,15 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.gameevent.GameEventListener;
-import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.VoxelShape;
-import buildcraft.lib.misc.CapUtil;
 
 
 public class BlockQuarry extends BlockBCTile_Neptune implements IBlockWithFacing {
@@ -86,36 +76,8 @@ public class BlockQuarry extends BlockBCTile_Neptune implements IBlockWithFacing
         return false;
     }
 
-	public boolean onDestroyedByPlayer(BlockState state, Level world, BlockPos pos, Player player, ItemStack toolStack, boolean willHarvest, FluidState fluid) {
-        BlockEntity tile = world.getBlockEntity(pos);
-        if (tile instanceof TileQuarry) {
-            for (BlockPos blockPos : ((TileQuarry) tile).framePoses) {
-                if (world.getBlockState(blockPos).getBlock() == BCBuildersBlocks.FRAME.get()) {
-                    world.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
-                }
-            }
-        }
-		return super.onDestroyedByPlayer(state, world, pos, player, toolStack, willHarvest, fluid);
-	}
-
-
-
-    public void onRemove(BlockState oldState, Level world, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (oldState.getBlock() != newState.getBlock()) {
-            BlockEntity tile = world.getBlockEntity(pos);
-            if (tile instanceof TileQuarry quarry) {
-                List<BlockPos> toRemove = new ArrayList<>(quarry.framePoses);
-                if (toRemove.isEmpty() && quarry.frameBox.isInitialized()) {
-                    toRemove.addAll(quarry.frameBox.getBlocksOnEdge());
-                }
-                for (BlockPos blockPos : toRemove) {
-                    if (world.getBlockState(blockPos).getBlock() == BCBuildersBlocks.FRAME.get()) {
-                        world.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
-                    }
-                }
-            }
-        }
-    }
+    // Frame teardown is handled by TileQuarry.preRemoveSideEffects(). The legacy
+    // onRemove(BlockState, Level, ...) signature is no longer called in Minecraft 26.3.
 
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
 		super.setPlacedBy(world, pos, state, placer, stack);

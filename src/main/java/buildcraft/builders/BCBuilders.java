@@ -11,6 +11,7 @@ import buildcraft.builders.tile.TileConstructionMarker;
 import buildcraft.builders.tile.TileElectronicLibrary;
 import buildcraft.builders.tile.TileFiller;
 import buildcraft.builders.tile.TileQuarry;
+import buildcraft.builders.tile.QuarryFrameCleanup;
 import buildcraft.builders.tile.TileReplacer;
 import buildcraft.core.BCCore;
 import buildcraft.lib.internal.capabilities.BCCapabilityRegistration;
@@ -51,6 +52,7 @@ public final class BCBuilders {
         BCBuildersConfig.preInit();
         BCBuildersRegistries.preInit();
         BCBuildersStatements.preInit();
+        QuarryFrameCleanup.init();
         registerCapabilities();
 
         MessageManager.registerMessageClass(

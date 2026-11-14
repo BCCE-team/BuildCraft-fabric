@@ -43,6 +43,12 @@ dependencies {
     compileOnly 'maven.modrinth:u6dRKJwZ:31.17.0.113-fabric,26.3' // JEI Fabric 26.3, 31.17.0.113
     compileOnly 'maven.modrinth:nvQzSEkH:vdhnGNqO' // Jade Fabric 26.3.0
 
+    // Minecraft 26.3 uses non-remapping Loom: use Gradle's runtimeOnly rather
+    // than the modLocalRuntime configuration of legacy/remapping Loom.
+    // Present in development runs, but not bundled into BuildCraft's JAR.
+    runtimeOnly 'maven.modrinth:u6dRKJwZ:31.17.0.113-fabric,26.3' // JEI Fabric 26.3
+    runtimeOnly 'maven.modrinth:nvQzSEkH:vdhnGNqO' // Jade Fabric 26.3
+
     compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'

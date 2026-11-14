@@ -75,6 +75,8 @@ public enum FacadeStateManager implements FacadeMaterialAdapter {
     public static final Map<ItemStackKey, List<FacadeBlockStateInfo>> stackFacades;
     public static FacadeBlockStateInfo defaultState, previewState;
     private static volatile boolean initialized;
+    /** Guarded by FacadeStateManager.class. Validation reads phased states while this map is being built. */
+    private static boolean initializing;
 
     /** Mods with confirmed facade-state incompatibilities that fail {@link #doesPropertyConform(Property)} or an
      * equivalent safety check. Entries apply only while the incompatible state representation is present. */
@@ -196,24 +198,75 @@ public enum FacadeStateManager implements FacadeMaterialAdapter {
             return;
         }
         synchronized (FacadeStateManager.class) {
-            if (initialized) {
+            // A third-party facade rule may re-enter this scan. Never rebuild the
+            // partially populated maps recursively; other threads wait for the
+            // class monitor and observe the completed scan.
+            if (initialized || initializing) {
                 return;
             }
-            validFacadeStates.clear();
-            stackFacades.clear();
-            previewState = defaultState;
+            initializing = true;
+            try {
+                validFacadeStates.clear();
+                stackFacades.clear();
+                previewState = defaultState;
 
-            for (Block block : BuiltInRegistries.BLOCK) {
-                scanBlock(block);
+                for (Block block : BuiltInRegistries.BLOCK) {
+                    scanBlock(block);
+                }
+
+                // A scan can be triggered while an early Minecraft/Fabric
+                // registry is not yet fully populated.  Never permanently
+                // cache that incomplete result: it would hide all facades and
+                // make every subsequent NBT lookup resolve to AIR.
+                if (!validFacadeStates.containsKey(Blocks.STONE.defaultBlockState())
+                    || !validFacadeStates.containsKey(Blocks.GLASS.defaultBlockState())) {
+                    BCLog.logger.warn("[silicon.facade] Facade material index incomplete ({} states; stone/glass missing). Will retry at the next lifecycle event.",
+                        validFacadeStates.size());
+                    validFacadeStates.clear();
+                    stackFacades.clear();
+                    previewState = defaultState;
+                    return;
+                }
+                previewState = validFacadeStates.getOrDefault(Blocks.BRICKS.defaultBlockState(), defaultState);
+                initialized = true;
+                BCLog.logger.info("[silicon.facade] Indexed {} facade states", validFacadeStates.size());
+            } finally {
+                initializing = false;
             }
-
-            previewState = validFacadeStates.getOrDefault(Blocks.BRICKS.defaultBlockState(), defaultState);
-            initialized = true;
         }
     }
 
     public static boolean isInitialized() {
         return initialized;
+    }
+
+    /**
+     * Resolve material saved on an existing facade without making the current
+     * craftable-material index part of the save format.  On Fabric, pipe block
+     * entities and item data can be decoded before the facade scan.  In that
+     * situation a perfectly valid stored block state must NOT be replaced by
+     * the AIR preview state (which would later be written back to the world).
+     *
+     * This fallback is intentionally NOT inserted into validFacadeStates:
+     * recipe creation and new facade placement still use the configured
+     * allowlist, while already placed facades retain their original material.
+     */
+    public static FacadeBlockStateInfo resolvePersistedState(BlockState state) {
+        if (state == null || state.isAir()) {
+            return defaultState;
+        }
+        synchronized (FacadeStateManager.class) {
+            FacadeBlockStateInfo registered = validFacadeStates.get(state);
+            if (registered != null) {
+                return registered;
+            }
+        }
+        // The block state has already been decoded from the Minecraft registry.
+        // Do not trigger init() here: it can run too early and cache an empty
+        // index for the remainder of the process.
+        Item item = state.getBlock().asItem();
+        ItemStack stack = item == Items.AIR ? StackUtil.EMPTY : new ItemStack(item, 1);
+        return new FacadeBlockStateInfo(state, stack, ImmutableSet.of());
     }
 
     private static void scanBlock(Block block) {

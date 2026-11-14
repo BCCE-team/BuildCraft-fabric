@@ -25,14 +25,13 @@ public class FacadePhasedState {
     }
 
     public static FacadePhasedState readFromNbt(CompoundTag nbt) {
+        // The index may still be initializing; preserve the stored material
+        // rather than converting a failed allowlist lookup into AIR.
         FacadeBlockStateInfo stateInfo = FacadeStateManager.defaultState;
         if (nbt.contains("state")) {
             try {
                 BlockState blockState = SavedBlockStateNbt.read(NbtCompat.getCompound(nbt, "state"));
-                stateInfo = FacadeStateManager.validFacadeStates.get(blockState);
-                if (stateInfo == null) {
-                    stateInfo = FacadeStateManager.defaultState;
-                }
+                stateInfo = FacadeStateManager.resolvePersistedState(blockState);
             } catch (Throwable t) {
                 throw new RuntimeException("Failed badly when reading a facade state!", t);
             }
@@ -60,11 +59,7 @@ public class FacadePhasedState {
     public static FacadePhasedState readFromBuffer(FriendlyByteBuf buf) {
         BlockState state = MessageUtil.readBlockState(buf);
         DyeColor colour = MessageUtil.readEnumOrNull(buf, DyeColor.class);
-        FacadeBlockStateInfo info = FacadeStateManager.validFacadeStates.get(state);
-        if (info == null) {
-            info = FacadeStateManager.defaultState;
-        }
-        return new FacadePhasedState(info, colour);
+        return new FacadePhasedState(FacadeStateManager.resolvePersistedState(state), colour);
     }
 
     public void writeToBuffer(FriendlyByteBuf buf) {
