@@ -19,6 +19,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.LiquidBlockContainer;
 import net.minecraft.world.level.block.state.BlockState;
@@ -139,7 +142,7 @@ public final class FluidUtil {
         if (player.level().isClientSide()) return true;
         ItemStack held = player.getItemInHand(hand);
         Storage<FluidVariant> item = FluidStorage.ITEM.find(held, ContainerItemContext.forPlayerInteraction(player, hand));
-        if (item == null) return false;
+        if (item == null) return transferUnregisteredBucketToTank(player, hand, held, tank);
         try (Transaction tx = FabricTransactionScope.begin()) {
             for (StorageView<FluidVariant> view : item) {
                 if (view.isResourceBlank() || view.getAmount() < DROPLETS_PER_MB) continue;
@@ -171,6 +174,35 @@ public final class FluidUtil {
             }
         }
         return false;
+    }
+
+    /**
+     * Fabric's generic item-fluid lookup may not be installed for custom BuildCraft
+     * {@link BucketItem}s. A whole bucket can still be inserted safely into a tank.
+     * Do not handle partial buckets or overwrite a nonempty stack without a check.
+     * The native Fabric Storage implementation remains authoritative when present.
+     */
+    private static boolean transferUnregisteredBucketToTank(Player player, InteractionHand hand,
+                                                              ItemStack held, IFluidHandler tank) {
+        if (!(held.getItem() instanceof BucketItem bucket) || bucket.getContent() == Fluids.EMPTY) {
+            return false;
+        }
+        FluidStack volume = new FluidStack(bucket.getContent(), 1000);
+        if (tank.fill(volume, IFluidHandler.FluidAction.SIMULATE) != 1000) {
+            return false;
+        }
+        if (!player.isCreative()) {
+            // A bucket is consumed only if the entire 1000 mB was accepted.
+            if (held.getCount() != 1) return false;
+        }
+        int accepted = tank.fill(volume, IFluidHandler.FluidAction.EXECUTE);
+        if (accepted != 1000) {
+            throw new IllegalStateException("Tank accepted " + accepted + " mB from a 1000 mB bucket");
+        }
+        if (!player.isCreative()) {
+            player.setItemInHand(hand, new ItemStack(Items.BUCKET));
+        }
+        return true;
     }
 
     /** Native Fabric-to-Fabric fluid transfer, with no unjournaled legacy mutations. */

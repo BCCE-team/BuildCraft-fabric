@@ -164,6 +164,11 @@ public final class BCEnergyFluids {
         BCFluid.Properties properties = new BCFluid.Properties(source, flowing, block::get, bucket::get)
             .tickDelay(10 + 10 * (2 - heat)).density(density).heat(heat)
             .color(0xFFFFFFFF).flammable(data[8] > 0);
+        // Ordinary oil buckets need the same bounded spread as oil spouts.
+        // Refined fuels and gas tiers retain their own behaviour.
+        if ("oil".equals(name)) {
+            properties.maxSourceSpreadDistance(SPOUT_OIL_SPREAD_LIMIT);
+        }
         refs.source = FLUIDS.register(fluidName, () -> new BCFluid.Source(properties));
         refs.flowing = FLUIDS.register(fluidName + "_flowing", () -> new BCFluid.Flowing(properties));
         OIL_SOURCE.add(refs.source);

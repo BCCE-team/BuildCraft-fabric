@@ -74,6 +74,9 @@ sourceSets {
 }
 
 loom {
+    // Required for compile-time and runtime access to Minecraft 26.3 members.
+    // The same file is declared in fabric.mod.json.
+    accessWidenerPath = file("src/main/resources/buildcraft.accesswidener")
     runs {
         client {
             client()

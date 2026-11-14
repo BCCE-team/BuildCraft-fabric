@@ -1,4 +1,4 @@
-accessWidener v2 named
+classTweaker v1 official
 
 # Dynamic BuildCraft menu JSON needs movable vanilla Slot positions.
 mutable field net/minecraft/world/inventory/Slot x I

@@ -60,6 +60,7 @@ public class ModelHolderRegistry {
      * retained for validation and compatibility with the existing model parser.
      */
     public static void reloadVariableModels() {
+        bootstrapBuiltinHolders();
         Set<Identifier> referencedSprites = new HashSet<>();
         for (ModelHolder holder : HOLDERS_JSONBAKE) {
             holder.onTextureStitch(referencedSprites);

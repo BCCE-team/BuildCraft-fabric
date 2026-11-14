@@ -9,7 +9,7 @@
     {
       "count": 1,
       "item": "buildcraftsilicon:redstone_chipset/gold",
-      "neoforge:ingredient_type": "buildcraftlib:strict_nbt"
+      "fabric:type": "buildcraftlib:strict_nbt"
     }
   ],
   "result": {

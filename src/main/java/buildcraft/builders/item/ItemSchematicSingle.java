@@ -64,6 +64,12 @@ public class ItemSchematicSingle extends Item {
         return InteractionResult.PASS;
     }
 
+    /** The NeoForge onItemUseFirst extension is not invoked by Fabric; route vanilla useOn into the same state machine. */
+    @Override
+    public InteractionResult useOn(UseOnContext context) {
+        return onItemUseFirst(context.getItemInHand(), context);
+    }
+
     public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
         Level world = context.getLevel();
         Player player = context.getPlayer();

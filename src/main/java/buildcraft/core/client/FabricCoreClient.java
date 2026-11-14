@@ -32,6 +32,9 @@ public final class FabricCoreClient {
 
         PlatformClientRegistration.screens().register(BCCore.LIST_MENU.get(), GuiList::new);
         BCCoreItems.registerItemModelProperties(PlatformClientRegistration.rangeProperties());
+        PlatformClientRegistration.tintSources().register(
+            net.minecraft.resources.Identifier.fromNamespaceAndPath(BCCore.MODID, "fluid_shard_contents"),
+            FluidShardTintSource.MAP_CODEC);
         BCCoreClientRenderers.register(PlatformClientRegistration.renderers());
         BCCoreSprites.init();
         DetachedRenderer.INSTANCE.addRenderer(

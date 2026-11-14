@@ -11,7 +11,7 @@
       "count": 1,
       "item": "buildcraftsilicon:plug/gate",
       "nbt": "{gate:{logic:1b,material:2b,modifier:0b}}",
-      "neoforge:ingredient_type": "buildcraftlib:strict_nbt"
+      "fabric:type": "buildcraftlib:strict_nbt"
     },
     "buildcraftsilicon:redstone_chipset/diamond"
   ],

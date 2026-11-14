@@ -4,6 +4,7 @@
  */
 package buildcraft.lib.platform.storage;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -11,6 +12,7 @@ import java.util.Set;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 /**
@@ -49,45 +51,58 @@ public final class FabricStorageLookups {
         registerTypes(type);
     }
 
+    /**
+     * Vanilla keeps BlockEntityType.validBlocks private (NeoForge adds a getter).
+     * Resolve the actual block set through the public isValid(BlockState) API;
+     * this also works for two engine types that share the same engine block.
+     */
+    public static List<Block> validBlocksFor(BlockEntityType<?> type) {
+        List<Block> blocks = new ArrayList<>();
+        for (Block block : BuiltInRegistries.BLOCK) {
+            if (type.isValid(block.defaultBlockState())) blocks.add(block);
+        }
+        return blocks;
+    }
+
     private static synchronized void registerTypes(BlockEntityType<?>... types) {
         for (BlockEntityType<?> type : types) {
             if (type == null || REGISTERED.contains(type)) continue;
             var id = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(type);
-            try {
-                ItemStorage.SIDED.registerForBlockEntities(
-                    (blockEntity, side) -> blockEntity instanceof FabricBlockStorageProvider provider
-                        ? provider.buildcraftItemStorage(side) : null,
-                    type
-                );
-            } catch (IllegalArgumentException invalidType) {
+            List<Block> blocks = validBlocksFor(type);
+            if (blocks.isEmpty()) {
                 buildcraft.lib.internal.debug.BCLog.logger.warn(
-                    "Could not register Fabric item storage for block entity {}",
-                    id, invalidType
-                );
+                    "Could not register Fabric storage for block entity {}: no registered blocks", id);
+                continue;
             }
-            try {
-                FluidStorage.SIDED.registerForBlockEntities(
-                    (blockEntity, side) -> blockEntity instanceof FabricBlockStorageProvider provider
-                        ? provider.buildcraftFluidStorage(side) : null,
-                    type
-                );
-            } catch (IllegalArgumentException invalidType) {
-                buildcraft.lib.internal.debug.BCLog.logger.warn(
-                    "Could not register Fabric fluid storage for block entity {}",
-                    id, invalidType
-                );
-            }
-            try {
-                team.reborn.energy.api.EnergyStorage.SIDED.registerForBlockEntities(
-                    (blockEntity, side) -> blockEntity instanceof FabricBlockStorageProvider provider
-                        ? provider.buildcraftEnergyStorage(side) : null,
-                    type
-                );
-            } catch (IllegalArgumentException invalidType) {
-                buildcraft.lib.internal.debug.BCLog.logger.warn(
-                    "Could not register Fabric energy storage for block entity {}",
-                    id, invalidType
-                );
+            for (Block block : blocks) {
+                // Fabric lookups are keyed by *block*. Use a generic provider
+                // for every valid BE type and install it only once per block.
+                // This preserves the actual runtime BE subtype (including
+                // creative and redstone engines on the same engine block).
+                if (ItemStorage.SIDED.getProvider(block) == null) {
+                    ItemStorage.SIDED.registerForBlocks(
+                        (level, pos, state, blockEntity, side) ->
+                            blockEntity instanceof FabricBlockStorageProvider provider
+                                ? provider.buildcraftItemStorage(side) : null,
+                        block
+                    );
+                }
+                if (FluidStorage.SIDED.getProvider(block) == null) {
+                    FluidStorage.SIDED.registerForBlocks(
+                        (level, pos, state, blockEntity, side) ->
+                            blockEntity instanceof FabricBlockStorageProvider provider
+                                ? provider.buildcraftFluidStorage(side) : null,
+                        block
+                    );
+                }
+                if (team.reborn.energy.api.EnergyStorage.SIDED.getProvider(block) == null) {
+                    team.reborn.energy.api.EnergyStorage.SIDED.registerForBlocks(
+                        (level, pos, state, blockEntity, side) ->
+                            blockEntity instanceof FabricBlockStorageProvider provider
+                                ? provider.buildcraftEnergyStorage(side) : null,
+                        block
+                    );
+                }
             }
             REGISTERED.add(type);
         }

@@ -7,7 +7,7 @@
     1
   ],
   "ingredients": [
-    "#c:glass",
+    "#c:glass_blocks",
     "minecraft:iron_bars"
   ],
   "result": {

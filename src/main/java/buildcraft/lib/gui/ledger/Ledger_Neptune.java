@@ -167,6 +167,10 @@ public class Ledger_Neptune implements IInteractionElement, IContainingElement {
             maxWidth = Math.min(maxWidth, availablePanelWidth());
         }
         maxHeight = h + LEDGER_GAP * 2;
+        if (fitToScreen()) {
+            double screenHeight = net.minecraft.client.Minecraft.getInstance().getWindow().getGuiScaledHeight();
+            maxHeight = Math.min(maxHeight, Math.max(CLOSED_HEIGHT, screenHeight * 0.70));
+        }
     }
 
     /** Only help ledgers need screen-aware constraints; existing machinery ledgers keep their layout. */

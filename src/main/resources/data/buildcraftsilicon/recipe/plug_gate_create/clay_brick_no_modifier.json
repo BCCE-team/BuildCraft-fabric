@@ -3,7 +3,7 @@
   "group": "buildcraftsilicon:basic_pluggate",
   "key": {
     "b": "buildcrafttransport:plug_blocker",
-    "m": "#c:ingots/brick",
+    "m": "#c:bricks/normal",
     "r": "#c:dusts/redstone"
   },
   "pattern": [

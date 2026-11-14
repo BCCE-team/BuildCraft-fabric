@@ -92,7 +92,7 @@ public abstract class FakeWorld extends Level {
     }
 
     @Override
-    public java.util.Collection<? extends net.minecraft.world.entity.PartEntity<?>> dragonParts() {
+    public java.util.Collection<net.minecraft.world.entity.boss.enderdragon.EnderDragonPart> dragonParts() {
         // Detached blueprint worlds have no live multipart entities.
         return java.util.List.of();
     }

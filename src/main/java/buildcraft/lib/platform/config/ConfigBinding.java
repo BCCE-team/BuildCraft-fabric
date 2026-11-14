@@ -233,8 +233,15 @@ public final class ConfigBinding {
             private List<String> pendingComments = List.of();
             private boolean restart;
 
+            // NeoForge BCConfigSpec permits dotted names inside pushed groups,
+            // e.g. push("general") + define("pipes.mjPerMillibucket").
+            // Treat each dot as a TOML path separator without changing the key.
+            private static boolean validPath(String path) {
+                return path != null && path.matches("[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)*");
+            }
+
             private String key(String name) {
-                if (name == null || !name.matches("[a-zA-Z0-9_\\-]+"))
+                if (!validPath(name))
                     throw new IllegalArgumentException("Invalid BCConfigSpec key: " + name);
                 return section.isEmpty() ? name : String.join(".", section) + "." + name;
             }
@@ -253,7 +260,11 @@ public final class ConfigBinding {
                 return () -> entry.current;
             }
 
-            public void push(String path) { section.addLast(path); }
+            public void push(String path) {
+                if (!validPath(path))
+                    throw new IllegalArgumentException("Invalid BCConfigSpec section: " + path);
+                section.addLast(path);
+            }
             public void pop() {
                 if (section.isEmpty()) throw new IllegalStateException("Config pop without push");
                 section.removeLast();

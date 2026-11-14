@@ -793,6 +793,14 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
 		return InteractionResult.PASS;
 	}
 
+    /** True when a player ray trace selects a pluggable or wire, not the pipe body. */
+    public boolean targetsAttachment(Level world, BlockPos pos, Player player) {
+        BCBlockHitResult hit = rayTrace(world, pos, player);
+        if (hit == null || hit.result == null || hit.subHit <= 6) return false;
+        return getPartSideHit(hit.result.getDirection(), hit.subHit) != null
+            || getWirePartHit(hit.subHit) != null || getWireBetweenHit(hit.subHit) != null;
+    }
+
 	public boolean onDestroyedByPlayer(BlockState state, Level world, BlockPos pos, Player player, ItemStack toolStack, boolean willHarvest, FluidState fluid) {
 		TilePipeHolder tile = getPipe(world, pos, false);
 		if (tile == null) {

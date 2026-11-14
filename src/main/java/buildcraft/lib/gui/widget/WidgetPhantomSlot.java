@@ -146,7 +146,7 @@ public class WidgetPhantomSlot extends Widget_Neptune<MenuBC_Neptune> {
                 byte flags = 0;
                 if (button == 1) flags |= CLICK_FLAG_SINGLE;
                 if (false) flags |= CLICK_FLAG_SHIFT;
-                if (gui.mc.options.keyPickItem.getKey().equals(InputConstants.Type.MOUSE.getOrCreate(button))) {
+                if (gui.mc.options.keyPickItem.matches(InputConstants.Type.MOUSE.getOrCreate(button))) {
                     flags |= CLICK_FLAG_CLONE;
                     BCLog.logger.info("clone");
                 }

@@ -239,7 +239,9 @@ public abstract class BCFluid extends FlowingFluid {
 
 	protected void spreadTo(LevelAccessor level, BlockPos pos, BlockState state, Direction direction,
 			FluidState fluidState) {
-		if (isWater(level.getFluidState(pos))) {
+        // Vanilla FlowingFluid.spread() does not call the BuildCraft canSpreadTo override.
+        // Enforce source-radius rules at the final shared placement boundary as well.
+        if (isWater(level.getFluidState(pos)) || !isWithinSourceSpreadLimit(level, pos)) {
 			return;
 		}
 		super.spreadTo(level, pos, state, direction, fluidState);

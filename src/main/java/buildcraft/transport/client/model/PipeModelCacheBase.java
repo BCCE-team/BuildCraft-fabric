@@ -33,6 +33,12 @@ public class PipeModelCacheBase {
         cacheTranslucent = new ModelCache<>(PipeModelCacheBase::generateTranslucent);
     }
 
+    /** Flush every atlas-dependent pipe body after the Fabric block atlas is replaced. */
+    public static void clearCaches() {
+        cacheCutout.clear();
+        cacheTranslucent.clear();
+    }
+
     private static List<BakedQuad> generateCutout(PipeBaseCutoutKey key) {
         return generator.generateCutout(key);
     }

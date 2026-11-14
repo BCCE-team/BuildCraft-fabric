@@ -67,8 +67,8 @@ public enum SimpleRobotRegistryProvider implements IRobotRegistryProvider {
         );
         private static final SavedDataType<SimpleRobotRegistry> TYPE = new SavedDataType<>(
             Identifier.withDefaultNamespace(DATA_NAME),
-            context -> new SimpleRobotRegistry(),
-            context -> CODEC,
+            SimpleRobotRegistry::new,
+            CODEC,
             null
         );
 

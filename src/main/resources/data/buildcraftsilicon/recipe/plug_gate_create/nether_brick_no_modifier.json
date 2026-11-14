@@ -3,7 +3,7 @@
   "group": "buildcraftsilicon:basic_pluggate",
   "key": {
     "b": "buildcrafttransport:plug_blocker",
-    "m": "#c:ingots/nether_brick",
+    "m": "#c:bricks/nether",
     "r": "#c:dusts/redstone"
   },
   "pattern": [
