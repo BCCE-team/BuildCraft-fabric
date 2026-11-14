@@ -10,6 +10,11 @@ import buildcraft.api.v2.energy.MjPassivePort;
 import buildcraft.api.v2.energy.MjPort;
 import buildcraft.api.v2.energy.MjPortDescriptor;
 import buildcraft.api.v2.energy.MjPortRole;
+import buildcraft.api.v2.energy.MjPortProvider;
+import buildcraft.api.v2.machine.MachineView;
+import buildcraft.api.v2.machine.MachineHostProvider;
+import buildcraft.lib.internal.capabilities.IBCCapabilityProvider;
+import buildcraft.lib.compat.neoforge263.fluids.IFluidHandler.FluidAction;
 import buildcraft.api.v2.energy.MjTransferResult;
 import buildcraft.lib.internal.api.v2.energy.MjRuntimeLookup;
 import buildcraft.lib.internal.transfer.FabricTransactionScope;
@@ -21,6 +26,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import team.reborn.energy.api.EnergyStorage;
 
 /**
@@ -28,8 +34,9 @@ import team.reborn.energy.api.EnergyStorage;
  * optional Team Reborn Energy adapter. Direct MJ ports take precedence over FE
  * while the adapter follows BCCE's exact configured MJ:FE conversion ratio.
  *
- * Native machine providers must register their API2 MjPort with MJ_PORT and
- * a descriptor with MJ_DESCRIPTOR during their own module bootstrap.
+ * MJ_PORT and MJ_DESCRIPTOR also offer compatibility fallbacks for BCCE's
+ * API v2 machines and classic MJ capability handlers. External addons can
+ * register their own native Fabric providers with higher priority.
  */
 public final class MjApi2PlatformBridge {
     private static final Identifier NETWORK_ID = Identifier.fromNamespaceAndPath("buildcraft", "mj");
@@ -42,12 +49,69 @@ public final class MjApi2PlatformBridge {
         BlockApiLookup.get(Identifier.fromNamespaceAndPath("buildcraftlib", "mj_port_descriptor"),
             MjPortDescriptor.class, Direction.class);
 
+    /** Optional native connector contract for Fabric addons using classic MJ connectors. */
+    public static final BlockApiLookup<IMjConnector, Direction> MJ_CONNECTOR =
+        BlockApiLookup.get(Identifier.fromNamespaceAndPath("buildcraftlib", "mj_connector"),
+            IMjConnector.class, Direction.class);
+
     private static final MjRuntimeLookup.Backend BACKEND = new Backend();
+    private static boolean lookupsInstalled;
 
     private MjApi2PlatformBridge() {}
 
-    public static void install() {
+    public static synchronized void install() {
+        if (!lookupsInstalled) {
+            // Native Fabric addons can register a more specific block provider.
+            // Legacy BCCE and addon tiles continue to expose their MjPortProvider / MachineView
+            // endpoints automatically, including their correct per-side descriptors.
+            MJ_PORT.registerFallback((level, pos, state, tile, side) -> declaredPort(tile, side));
+            MJ_DESCRIPTOR.registerFallback((level, pos, state, tile, side) -> declaredDescriptor(tile, side));
+            MJ_CONNECTOR.registerFallback((level, pos, state, tile, side) ->
+                tile instanceof IBCCapabilityProvider provider
+                    ? provider.getCapability(MjCapabilities.CAP_CONNECTOR, side) : null);
+            lookupsInstalled = true;
+        }
         MjRuntimeLookup.install(BACKEND);
+    }
+
+    private static MjPort declaredPort(BlockEntity tile, Direction side) {
+        if (tile instanceof MjPortProvider provider) {
+            Optional<MjPort> port = provider.mjPort(side);
+            if (port.isPresent()) return port.get();
+        }
+        if (tile instanceof MachineView machine) {
+            Optional<MjPort> port = machine.mjPort(side);
+            if (port.isPresent()) return port.get();
+        }
+        if (tile instanceof MachineHostProvider provider) {
+            Optional<MjPort> port = provider.machineHost().mjPort(side);
+            if (port.isPresent()) return port.get();
+        }
+        return legacyPort(tile, side);
+    }
+
+    private static MjPort legacyPort(BlockEntity tile, Direction side) {
+        if (!(tile instanceof IBCCapabilityProvider provider)) return null;
+        IMjConnector connector = provider.getCapability(MjCapabilities.CAP_CONNECTOR, side);
+        IMjReceiver receiver = provider.getCapability(MjCapabilities.CAP_RECEIVER, side);
+        IMjRedstoneReceiver redstone = provider.getCapability(MjCapabilities.CAP_REDSTONE_RECEIVER, side);
+        IMjReadable readable = provider.getCapability(MjCapabilities.CAP_READABLE, side);
+        IMjPassiveProvider passive = provider.getCapability(MjCapabilities.CAP_PASSIVE_PROVIDER, side);
+        if (connector == null && receiver == null && redstone == null && readable == null && passive == null)
+            return null;
+        return new LegacyPort(connector, receiver, redstone, readable, passive);
+    }
+
+    private static MjPortDescriptor declaredDescriptor(BlockEntity tile, Direction side) {
+        if (tile instanceof MjPortProvider provider) {
+            Optional<MjPort> port = provider.mjPort(side);
+            if (port.isPresent()) {
+                return provider.mjPortDescriptor(side).orElseGet(() -> descriptorFrom(port.get()));
+            }
+        }
+        MjPort port = declaredPort(tile, side);
+        if (port instanceof LegacyPort legacy) return legacy.descriptor();
+        return port == null ? null : descriptorFrom(port);
     }
 
     private static boolean valid(Level level, BlockPos pos) {
@@ -98,8 +162,18 @@ public final class MjApi2PlatformBridge {
         }
 
         public boolean canConnect(MjConnectionContext context) {
-            // Server-only transfer logic never belongs in a topology probe.
-            return context.local().networkId().equals(context.remote().networkId());
+            // Network compatibility is necessary, but not sufficient. Classic MJ connectors
+            // may restrict the neighbor's connector type or direction on *either* side.
+            if (!context.local().networkId().equals(context.remote().networkId())) return false;
+            Level level = context.level();
+            BlockPos remotePos = context.position().relative(context.side());
+            if (!valid(level, context.position()) || !valid(level, remotePos)) return false;
+            IMjConnector local = MJ_CONNECTOR.find(level, context.position(),
+                level.getBlockState(context.position()), level.getBlockEntity(context.position()), context.side());
+            IMjConnector remote = MJ_CONNECTOR.find(level, remotePos,
+                level.getBlockState(remotePos), level.getBlockEntity(remotePos), context.side().getOpposite());
+            return local == null || remote == null ||
+                (local.canConnect(remote) && remote.canConnect(local));
         }
     }
 
@@ -113,6 +187,70 @@ public final class MjApi2PlatformBridge {
             port.canInsert() ? UNKNOWN_RATE : MjAmount.ZERO,
             port.canExtract() ? UNKNOWN_RATE : MjAmount.ZERO
         );
+    }
+
+    /** The same legacy MJ capability roles and extraction guarantees as NeoForge. */
+    private record LegacyPort(
+        IMjConnector connector, IMjReceiver receiver, IMjRedstoneReceiver redstone,
+        IMjReadable readable, IMjPassiveProvider provider
+    ) implements MjDemandPort, MjPassivePort {
+        public MjTransferResult insert(MjAmount offered, OperationMode mode) {
+            IMjReceiver target = receiver != null ? receiver : redstone;
+            if (target == null || !target.canReceive() || offered.isZero())
+                return MjTransferResult.none(offered);
+            long remainder = target.receivePower(offered.microMj(),
+                mode == OperationMode.EXECUTE ? FluidAction.EXECUTE : FluidAction.SIMULATE);
+            remainder = Math.max(0L, Math.min(offered.microMj(), remainder));
+            return MjTransferResult.of(offered, MjAmount.ofMicro(offered.microMj() - remainder));
+        }
+
+        public MjTransferResult extract(MjAmount requested, OperationMode mode) {
+            return extract(MjAmount.ZERO, requested, mode);
+        }
+
+        public MjTransferResult extract(MjAmount minimum, MjAmount maximum, OperationMode mode) {
+            if (minimum.compareTo(maximum) > 0)
+                throw new IllegalArgumentException("minimum exceeds maximum");
+            if (provider == null || maximum.isZero()) return MjTransferResult.none(maximum);
+            long moved = provider.extractPower(minimum.microMj(), maximum.microMj(),
+                mode == OperationMode.EXECUTE);
+            if ((moved != 0L && moved < minimum.microMj()) || moved > maximum.microMj() || moved < 0L)
+                throw new IllegalStateException("Legacy MJ provider violated extraction contract");
+            return MjTransferResult.of(maximum, MjAmount.ofMicro(moved));
+        }
+
+        public MjAmount requested() {
+            IMjReceiver target = receiver != null ? receiver : redstone;
+            return MjAmount.ofMicro(target == null || !target.canReceive() ? 0L
+                : Math.max(0L, target.getPowerRequested()));
+        }
+
+        public MjAmount stored() {
+            return MjAmount.ofMicro(readable == null ? 0L : Math.max(0L, readable.getStored()));
+        }
+
+        public MjAmount capacity() {
+            return MjAmount.ofMicro(readable == null ? 0L : Math.max(0L, readable.getCapacity()));
+        }
+
+        public boolean canInsert() {
+            IMjReceiver target = receiver != null ? receiver : redstone;
+            return target != null && target.canReceive();
+        }
+
+        public boolean canExtract() { return provider != null; }
+
+        private MjPortDescriptor descriptor() {
+            EnumSet<MjPortRole> roles = EnumSet.noneOf(MjPortRole.class);
+            if (connector != null) roles.add(MjPortRole.CONNECTOR);
+            if (receiver != null || redstone != null) roles.add(MjPortRole.CONSUMER);
+            if (redstone != null) roles.add(MjPortRole.REDSTONE_RECEIVER);
+            if (readable != null) roles.add(MjPortRole.READABLE);
+            if (provider != null) roles.add(MjPortRole.PASSIVE_PROVIDER);
+            return new MjPortDescriptor(NETWORK_ID, roles,
+                receiver == null && redstone == null ? MjAmount.ZERO : UNKNOWN_RATE,
+                provider == null ? MjAmount.ZERO : UNKNOWN_RATE);
+        }
     }
 
     private record FePort(EnergyStorage storage) implements MjDemandPort, MjPassivePort {

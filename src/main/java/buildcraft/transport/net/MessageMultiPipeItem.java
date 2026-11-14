@@ -4,7 +4,7 @@ package buildcraft.transport.net;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,7 +26,7 @@ public class MessageMultiPipeItem {
 
     private static final int MAX_ITEMS_PER_PIPE = 10;
     private static final int MAX_POSITIONS = 4000;
-    public final Map<BlockPos, List<TravellingItemData>> items = new HashMap<>();
+    public final Map<BlockPos, List<TravellingItemData>> items = new LinkedHashMap<>();
 
     public MessageMultiPipeItem() {
 
@@ -116,7 +116,7 @@ public class MessageMultiPipeItem {
             side = buf.readEnum(Direction.class);
             colour = MessageUtil.readEnumOrNull(buf, DyeColor.class);
             timeToDest = buf.readVarInt();
-            if (timeToDest < 0 || timeToDest > 1_000_000) {
+            if (timeToDest < 0 || timeToDest > 1_200) {
                 throw new DecoderException("Invalid travelling item travel time: " + timeToDest);
             }
             pausedAtCenter = buf.readBoolean();
@@ -128,7 +128,7 @@ public class MessageMultiPipeItem {
             buf.writeBoolean(toCenter);
             buf.writeEnum(side);
             MessageUtil.writeEnumOrNull(buf, colour);
-            buf.writeVarInt(timeToDest);
+            buf.writeVarInt(Math.max(0, Math.min(1_200, timeToDest)));
             buf.writeBoolean(pausedAtCenter);
         }
     }

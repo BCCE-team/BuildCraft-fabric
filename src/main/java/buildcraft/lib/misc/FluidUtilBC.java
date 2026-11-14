@@ -22,6 +22,7 @@ import buildcraft.lib.fluid.FluidCompatRegistry;
 import buildcraft.lib.fluid.Tank;
 import buildcraft.lib.tile.item.ItemHandlerSimple;
 import buildcraft.lib.fluid.TankManager;
+import buildcraft.lib.tile.TileBC_Neptune;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -252,6 +253,10 @@ public class FluidUtilBC {
 
     public static boolean onTankActivated(Player player, BlockPos pos, InteractionHand hand,
         IFluidHandler fluidHandler) {
+        if (!player.level().hasChunkAt(pos)) return false;
+        BlockEntity edited = player.level().getBlockEntity(pos);
+        // A bucket must never bypass the exact same edit permissions as the GUI.
+        if (edited instanceof TileBC_Neptune tile && !tile.canPlayerEdit(player)) return true;
         ItemStack held = player.getItemInHand(hand);
         if (held.isEmpty()) {
             return false;
@@ -270,12 +275,52 @@ public class FluidUtilBC {
             return true;
         }
 
+        List<FluidStack> before = snapshotFluids(fluidHandler);
         boolean changed = FluidUtil.interactWithFluidHandler(player, hand, fluidHandler);
         if (changed) {
             syncPlayerInventory(player);
+            FluidActionDelta delta = findFluidActionDelta(before, fluidHandler);
+            // Fabric Transfer does not play bucket sounds when moving fluid between
+            // an item's Storage and a block's Storage. This path owns the interaction,
+            // so vanilla bucket placement cannot play a second sound afterward.
+            if (delta != null) {
+                if (delta.emptiedItem()) SoundUtil.playBucketEmpty(player.level(), pos, delta.fluid());
+                else SoundUtil.playBucketFill(player.level(), pos, delta.fluid());
+            }
         }
         return true;
     }
+
+    private static List<FluidStack> snapshotFluids(IFluidHandler handler) {
+        List<FluidStack> snapshot = new ArrayList<>(handler.getTanks());
+        for (int index = 0; index < handler.getTanks(); index++) {
+            FluidStack fluid = handler.getFluidInTank(index);
+            snapshot.add(fluid == null || fluid.isEmpty() ? FluidStack.EMPTY : fluid.copy());
+        }
+        return snapshot;
+    }
+
+    private static FluidActionDelta findFluidActionDelta(List<FluidStack> before, IFluidHandler handler) {
+        for (int index = 0; index < Math.max(before.size(), handler.getTanks()); index++) {
+            FluidStack oldFluid = index < before.size() ? before.get(index) : FluidStack.EMPTY;
+            FluidStack newFluid = index < handler.getTanks() ? handler.getFluidInTank(index) : FluidStack.EMPTY;
+            if (newFluid == null) newFluid = FluidStack.EMPTY;
+            if (oldFluid.isEmpty() && newFluid.isEmpty()) continue;
+            if (!oldFluid.isEmpty() && !newFluid.isEmpty()
+                && FluidCompatRegistry.areEquivalent(oldFluid, newFluid)) {
+                int difference = newFluid.getAmount() - oldFluid.getAmount();
+                if (difference > 0) return new FluidActionDelta(newFluid.copyWithAmount(difference), true);
+                if (difference < 0) return new FluidActionDelta(oldFluid.copyWithAmount(-difference), false);
+            } else if (oldFluid.isEmpty() && !newFluid.isEmpty()) {
+                return new FluidActionDelta(newFluid.copy(), true);
+            } else if (!oldFluid.isEmpty() && newFluid.isEmpty()) {
+                return new FluidActionDelta(oldFluid.copy(), false);
+            }
+        }
+        return null;
+    }
+
+    private record FluidActionDelta(FluidStack fluid, boolean emptiedItem) {}
 
     private static void syncPlayerInventory(Player player) {
         player.inventoryMenu.broadcastFullState();

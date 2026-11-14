@@ -127,9 +127,19 @@ public final class BCEnergyFluids {
             Identifier.fromNamespaceAndPath("c", "oil")), OIL_SOURCE.get(0).get(),
             Identifier.fromNamespaceAndPath(BCEnergy.MODID, "spout_oil"),
             Identifier.fromNamespaceAndPath(BCEnergy.MODID, "spout_oil_flowing"));
-        // Fabric's fluid-behavior API handles swimming, flow, buoyancy and drowning.
-        // Never add these fluids to minecraft:water: BCFluid spread rules depend on that tag.
-        EntityFluidInteractionRegistry.register(ENTITY_LIQUID, FluidBehavior.WATER_LIKE);
+        // NeoForge BCFluidType.move uses a water-style motion step, but canSwim(false)
+        // deliberately keeps oil out of vanilla water/swimming/drowning/mob AI.
+        // Reproduce motion separately instead of WATER_LIKE (which enables unrelated rules).
+        // The block's sticky slowdown is still applied by BCLiquidBlock.entityInside.
+        EntityFluidInteractionRegistry.register(ENTITY_LIQUID, FluidBehavior.simple()
+            .movementSpeed(0.02F)
+            .movementSlowdown(0.8F, 0.8F)
+            .flowingPushScale(0.014D)
+            .allowSwimming(false)
+            .enableDrowning(false)
+            .makeMobsFloat(false)
+            .makeRiddenMobsFloat(false)
+            .build());
     }
 
     private static int copyTriple(BCFluid[] target, int index) {

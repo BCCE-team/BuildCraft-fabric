@@ -6,7 +6,7 @@
     1
   ],
   "ingredients": [
-    "#c:glass_blocks"
+    "minecraft:glass"
   ],
   "result": {
     "item": "buildcraftsilicon:plug/lens",

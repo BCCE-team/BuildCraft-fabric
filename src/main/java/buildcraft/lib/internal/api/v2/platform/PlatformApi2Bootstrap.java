@@ -20,6 +20,11 @@ import buildcraft.api.v2.platform.PlatformServices;
 import buildcraft.lib.internal.api.v2.BuildCraftApiRuntime;
 import buildcraft.lib.internal.transfer.FabricTransactionScope;
 import buildcraft.lib.fluid.FabricFluidVariants;
+import buildcraft.lib.internal.capabilities.IBCCapabilityProvider;
+import buildcraft.lib.internal.inventory.IItemHandlerFiltered;
+import buildcraft.lib.misc.CapUtil;
+import buildcraft.lib.platform.storage.FabricSlotFilterProvider;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.HolderLookup;
 
 import java.util.Optional;
@@ -92,7 +97,7 @@ public final class PlatformApi2Bootstrap {
             if (nativeStorage instanceof SlottedStorage<?> slotted) {
                 @SuppressWarnings("unchecked")
                 SlottedStorage<ItemVariant> slots = (SlottedStorage<ItemVariant>) slotted;
-                return Optional.of(new SlottedItems(slots));
+                return Optional.of(new SlottedItems(slots, blockEntity, side));
             }
             return Optional.of(new NativeItems(nativeStorage));
         }
@@ -136,8 +141,15 @@ public final class PlatformApi2Bootstrap {
 
     private static final class SlottedItems extends NativeItems implements SlottedItemPort {
         private final SlottedStorage<ItemVariant> slots;
+        private final BlockEntity owner;
+        private final Direction side;
 
-        SlottedItems(SlottedStorage<ItemVariant> slots) { super(slots); this.slots = slots; }
+        SlottedItems(SlottedStorage<ItemVariant> slots, BlockEntity owner, Direction side) {
+            super(slots);
+            this.slots = slots;
+            this.owner = owner;
+            this.side = side;
+        }
 
         public int slots() { return slots.getSlotCount(); }
 
@@ -149,7 +161,24 @@ public final class PlatformApi2Bootstrap {
         }
 
         public ItemMatcher filter(int slot) {
-            // Fabric's generic SlottedStorage does not expose a virtual filter slot.
+            if (slot < 0 || slot >= slots.getSlotCount()) return ItemMatcher.none();
+            // Fabric-native endpoints may expose their declared filter directly;
+            // don't approximate this by a simulation of a full slot.
+            if (slots instanceof FabricSlotFilterProvider filters) {
+                ItemMatcher matcher = filters.filter(slot);
+                if (matcher != null) return matcher;
+            }
+            // Legacy BCCE item handlers declare one representative filter stack
+            // per slot. Keep that information when their Fabric Storage is used.
+            if (owner instanceof IBCCapabilityProvider provider
+                && provider.getCapability(CapUtil.CAP_ITEMS, side) instanceof IItemHandlerFiltered filtered) {
+                ItemStack example = filtered.getFilter(slot);
+                if (example != null && !example.isEmpty()) {
+                    ItemStack expected = example.copyWithCount(1);
+                    return candidate -> candidate != null && !candidate.isEmpty()
+                        && ItemStack.matches(expected, candidate.copyWithCount(1));
+                }
+            }
             return ItemMatcher.any();
         }
     }

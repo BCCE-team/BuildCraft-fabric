@@ -225,7 +225,9 @@ public class ModelHolderStatic extends ModelHolder {
     /** Converts a native immutable quad into the legacy BuildCraft quad representation. */
     private static MutableQuad fromNativeQuad(BakedQuad source) {
         MutableQuad quad = new MutableQuad(source.materialInfo().tintIndex(), source.direction(),
-            source.materialInfo().shadeDirectionOverride() != null);
+            // A null override uses the face direction for vanilla diffuse shading.
+            // An explicit UP override reproduces the pre-26.3 "shade: false" behavior.
+            source.materialInfo().shadeDirectionOverride() == null);
         quad.setSprite(source.materialInfo().sprite());
 
         Direction direction = source.direction();

@@ -326,20 +326,10 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
                 quad.setTint(tint * Direction.values().length + key.side.ordinal());
             }
         }
-        // Both the exterior and the recessed surface of a glass facade can be visible in
-        // one view. Their alpha accumulates, making coloured glass much denser than a
-        // vanilla block. Attenuate the vertex *alpha only* for installed stained-glass
-        // facades; tint RGB and source texture opacity remain untouched. Native terrain
-        // conversion preserves these per-vertex BakedColors in the Fabric mesh emitter.
-        String facadeBlockId = net.minecraft.core.registries.BuiltInRegistries.BLOCK
-            .getKey(key.state.getBlock()).getPath();
-        boolean stainedGlass = facadeBlockId.endsWith("_stained_glass")
-            || facadeBlockId.endsWith("_stained_glass_pane");
-        if (applyGlassAlpha && stainedGlass) {
-            for (MutableQuad quad : quads) {
-                quad.multColourd(1.0, 1.0, 1.0, 0.75);
-            }
-        }
+        // Keep the source glass alpha unchanged, as on NeoForge 26.3. Multiplying alpha
+        // cannot repair overly bright side faces: that was caused by the inverted
+        // shadeDirectionOverride mapping in ModelPipeNative2612. This path is also used
+        // for item previews, so avoid changing glass opacity here.
         return quads;
     }
 

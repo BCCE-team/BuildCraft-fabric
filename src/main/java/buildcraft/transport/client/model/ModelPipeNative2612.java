@@ -325,7 +325,11 @@ public final class ModelPipeNative2612 implements BlockStateModel {
             translucent ? Sheets.translucentBlockItemSheet() : Sheets.cutoutBlockItemSheet(),
             translucent ? Sheets.translucentBlockItemGlintSheet() : Sheets.cutoutBlockItemGlintSheet(),
             translucent ? Sheets.translucentBlockItemGlintSpecialSheet() : Sheets.cutoutBlockItemGlintSpecialSheet(),
-            tintIndex, shade ? Direction.UP : null, lightEmission);
+            // 26.3 replaces the old shade flag with a shading-direction override:
+            // null shades using the quad's actual face, while UP emulates the old shade=false.
+            // Do not invert this mapping: forcing UP on normal side faces makes glass and pipes
+            // brighter than vanilla blocks and the NeoForge renderer.
+            tintIndex, shade ? null : Direction.UP, lightEmission);
     }
 
     private static Vector3f position(MutableVertex vertex) {

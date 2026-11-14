@@ -9,6 +9,7 @@ import buildcraft.lib.internal.core.BuildCraftAPI;
 import buildcraft.lib.internal.module.BCModules;
 import buildcraft.lib.internal.statement.StatementManager;
 import buildcraft.lib.misc.CapUtil;
+import buildcraft.lib.platform.storage.FabricEntityStorageLookups;
 import buildcraft.lib.net.BCNetworkSide;
 import buildcraft.lib.net.MessageManager;
 import buildcraft.lib.platform.registry.BCDeferredRegister;
@@ -61,6 +62,11 @@ public final class BCRobotics {
         CREATIVE_TABS.register(RegistryBinding.direct());
         FabricDefaultAttributeRegistry.register(BCRoboticsEntities.ROBOT.get(),
             buildcraft.robotics.entity.EntityRobot.createAttributes());
+        // Third-party Fabric fluid machines must be able to see the robot's
+        // transactional tank, not just its internal fluid carrier AI.
+        FabricEntityStorageLookups.FLUIDS.registerForType(
+            (robot, side) -> robot.isRemoved() ? null : robot.resourceHandler(),
+            BCRoboticsEntities.ROBOT.get());
         BCCapabilityRegistration.registerBlockEntity(CapUtil.CAP_ITEMS, BCRoboticsBlocks.ZONE_PLANNER_TILE.get());
         BCCapabilityRegistration.registerBlockEntity(CapUtil.CAP_ITEMS, BCRoboticsBlocks.REQUESTER_TILE.get());
 

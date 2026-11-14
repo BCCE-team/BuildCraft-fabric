@@ -1,13 +1,13 @@
 {
   "type": "buildcraftsilicon:assembly",
   "MJ": 500000000,
-  "group": "buildcraftsilicon:lens_regulars",
+  "group": "buildcraftsilicon:lens_filters",
   "ingredient_counts": [
     1,
     1
   ],
   "ingredients": [
-    "#c:glass_blocks",
+    "minecraft:glass",
     "minecraft:iron_bars"
   ],
   "result": {

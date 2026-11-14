@@ -7,6 +7,8 @@ import buildcraft.lib.compat.neoforge263.fluids.IFluidHandler.FluidAction;
 import buildcraft.lib.compat.neoforge263.items.IItemHandler;
 import buildcraft.lib.compat.transfer.TransferJournal;
 import buildcraft.lib.fluid.FluidStack;
+import buildcraft.lib.internal.inventory.IItemHandlerFiltered;
+import buildcraft.api.v2.item.ItemMatcher;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -50,11 +52,20 @@ public final class FabricOwnedStorageAdapters {
         return Math.max(0L, droplets / DROPLETS_PER_MB);
     }
 
-    private static final class OwnedItems implements SlottedStorage<ItemVariant> {
+    private static final class OwnedItems implements SlottedStorage<ItemVariant>, FabricSlotFilterProvider {
         final IItemHandler handler;
         final Runnable changed;
         OwnedItems(IItemHandler handler, Runnable changed) { this.handler = handler; this.changed = changed; }
         public int getSlotCount() { return handler.getSlots(); }
+        public ItemMatcher filter(int slot) {
+            if (slot < 0 || slot >= handler.getSlots()) return ItemMatcher.none();
+            if (!(handler instanceof IItemHandlerFiltered filtered)) return ItemMatcher.any();
+            ItemStack example = filtered.getFilter(slot);
+            if (example == null || example.isEmpty()) return ItemMatcher.any();
+            ItemStack normalized = example.copyWithCount(1);
+            return candidate -> candidate != null && !candidate.isEmpty()
+                && ItemStack.matches(normalized, candidate.copyWithCount(1));
+        }
         public SingleSlotStorage<ItemVariant> getSlot(int slot) {
             Objects.checkIndex(slot, handler.getSlots());
             return new ItemSlot(this, slot);

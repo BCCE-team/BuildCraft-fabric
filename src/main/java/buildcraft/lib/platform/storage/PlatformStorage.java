@@ -30,11 +30,11 @@ import net.minecraft.world.level.Level;
 /**
  * Fabric 26.3's active replacement for NeoForge PlatformStorage.
  *
- * <p>Indexed views are returned only for native Fabric SlottedStorage
- * implementations, never synthetic slots over arbitrary Storage. Slotless
- * endpoints are served by API v2 ItemPort/FluidPort through the Fabric
- * platform service and pipe adapters. Item/Fluid Data Components and fluid
- * millibucket precision are preserved by the canonical BCCE codecs.</p>
+ * <p>Native SlottedStorage keeps its exact slot semantics. General Fabric Storage
+ * endpoints also work through legacy CapUtil paths with ephemeral view indices
+ * and one insertion-only virtual slot, rather than being silently ignored.
+ * Integrations that need stable slots should use API v2 ItemPort/FluidPort;
+ * components and fluid mB granularity are preserved by the BCCE codecs.</p>
  */
 public final class PlatformStorage {
     private static final long DROPLETS_PER_MB = FluidConstants.BUCKET / 1000L;
@@ -51,17 +51,27 @@ public final class PlatformStorage {
         if (!valid(level, pos)) return null;
         Storage<ItemVariant> nativeStorage = net.fabricmc.fabric.api.transfer.v1.item.ItemStorage.SIDED.find(
             level, pos, level.getBlockState(pos), level.getBlockEntity(pos), face);
-        if (!(nativeStorage instanceof SlottedStorage<?> raw)) return null;
-        @SuppressWarnings("unchecked")
-        SlottedStorage<ItemVariant> slotted = (SlottedStorage<ItemVariant>) raw;
-        return new FabricSlottedItems(slotted);
+        if (nativeStorage == null) return null;
+        if (nativeStorage instanceof SlottedStorage<?> raw) {
+            @SuppressWarnings("unchecked")
+            SlottedStorage<ItemVariant> slotted = (SlottedStorage<ItemVariant>) raw;
+            return new FabricSlottedItems(slotted);
+        }
+        return new FabricUnslottedItems(nativeStorage);
     }
 
     @Nullable
     public static ItemStorage items(@Nullable Entity entity, @Nullable Direction face) {
-        // Fabric has no native entity-sided item lookup equivalent to NeoForge.
-        // Vanilla container entities remain accessible without pretending that
-        // every generic item storage exposes stable indexed slots.
+        if (entity == null || entity.isRemoved()) return null;
+        // Fabric addons can expose their custom mobile inventories through an
+        // entity lookup; vanilla chest boats, minecarts etc. still use Container.
+        Storage<ItemVariant> nativeStorage = FabricEntityStorageLookups.ITEMS.find(entity, face);
+        if (nativeStorage instanceof SlottedStorage<?> raw) {
+            @SuppressWarnings("unchecked")
+            SlottedStorage<ItemVariant> slotted = (SlottedStorage<ItemVariant>) raw;
+            return new FabricSlottedItems(slotted);
+        }
+        if (nativeStorage != null) return new FabricUnslottedItems(nativeStorage);
         return entity instanceof Container container ? localInventory(container) : null;
     }
 
@@ -73,11 +83,8 @@ public final class PlatformStorage {
         Storage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> nativeStorage =
             net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage.SIDED.find(
                 level, pos, level.getBlockState(pos), level.getBlockEntity(pos), face);
-        if (!(nativeStorage instanceof SlottedStorage<?> raw)) return null;
-        @SuppressWarnings("unchecked")
-        SlottedStorage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> slotted =
-            (SlottedStorage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant>) raw;
-        return new FabricSlottedFluids(slotted, level.registryAccess());
+        if (nativeStorage == null) return null;
+        return new FabricFluids(nativeStorage, level.registryAccess());
     }
 
     @Nullable
@@ -221,11 +228,85 @@ public final class PlatformStorage {
         }
     }
 
-    private static final class FabricSlottedFluids implements FilteredFluidStorage<FluidVolume> {
-        private final SlottedStorage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> nativeStorage;
+    /**
+     * Compatibility view of an unslotted Fabric Storage. Existing resource views
+     * receive ephemeral read/extract indices; one extra empty index accepts items.
+     * We never pretend these indices are persistent physical inventory slots.
+     * Each mutation still uses the original Fabric transaction.
+     */
+    private static final class FabricUnslottedItems implements ItemStorage {
+        private final Storage<ItemVariant> nativeStorage;
+
+        private FabricUnslottedItems(Storage<ItemVariant> nativeStorage) {
+            this.nativeStorage = Objects.requireNonNull(nativeStorage);
+        }
+
+        private StorageView<ItemVariant> view(int index) {
+            if (index < 0) return null;
+            int n = 0;
+            for (StorageView<ItemVariant> view : nativeStorage) {
+                if (n++ == index) return view;
+            }
+            return null;
+        }
+
+        public int getSlots() {
+            int count = 1; // additional insertion endpoint even for empty storages
+            for (StorageView<ItemVariant> ignored : nativeStorage) {
+                if (count == Integer.MAX_VALUE) break;
+                count++;
+            }
+            return count;
+        }
+
+        public ItemStack getStackInSlot(int index) {
+            StorageView<ItemVariant> view = view(index);
+            return view == null || view.isResourceBlank() || view.getAmount() <= 0
+                ? ItemStack.EMPTY : view.getResource().toStack(bounded(view.getAmount()));
+        }
+
+        public int getSlotLimit(int index) {
+            if (index < 0 || index >= getSlots()) return 0;
+            StorageView<ItemVariant> view = view(index);
+            return view == null ? 64 : bounded(view.getCapacity());
+        }
+
+        public boolean isItemValid(int index, ItemStack offered) {
+            if (index < 0 || index >= getSlots() || offered == null || offered.isEmpty()) return false;
+            try (Transaction tx = FabricTransactionScope.begin()) {
+                return nativeStorage.insert(ItemVariant.of(offered), 1, tx) > 0;
+            }
+        }
+
+        public ItemStack insertItem(int index, ItemStack offered, boolean simulate) {
+            if (offered == null || offered.isEmpty()) return ItemStack.EMPTY;
+            if (index < 0 || index >= getSlots()) return offered;
+            try (Transaction tx = FabricTransactionScope.begin()) {
+                long inserted = Math.min(offered.getCount(), Math.max(0L,
+                    nativeStorage.insert(ItemVariant.of(offered), offered.getCount(), tx)));
+                if (!simulate && inserted > 0) tx.commit();
+                return remainder(offered, inserted);
+            }
+        }
+
+        public ItemStack extractItem(int index, int amount, boolean simulate) {
+            if (amount <= 0) return ItemStack.EMPTY;
+            StorageView<ItemVariant> view = view(index);
+            if (view == null || view.isResourceBlank() || view.getAmount() <= 0) return ItemStack.EMPTY;
+            ItemVariant variant = view.getResource();
+            try (Transaction tx = FabricTransactionScope.begin()) {
+                long extracted = Math.min(amount, Math.max(0L, view.extract(variant, amount, tx)));
+                if (!simulate && extracted > 0) tx.commit();
+                return extracted <= 0 ? ItemStack.EMPTY : variant.toStack(bounded(extracted));
+            }
+        }
+    }
+
+    private static final class FabricFluids implements FilteredFluidStorage<FluidVolume> {
+        private final Storage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> nativeStorage;
         private final net.minecraft.core.HolderLookup.Provider registries;
-        private FabricSlottedFluids(
-            SlottedStorage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> nativeStorage,
+        private FabricFluids(
+            Storage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> nativeStorage,
             net.minecraft.core.HolderLookup.Provider registries
         ) {
             this.nativeStorage = Objects.requireNonNull(nativeStorage);
@@ -233,8 +314,19 @@ public final class PlatformStorage {
         }
 
         @Nullable
-        private SingleSlotStorage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> slot(int index) {
-            return index >= 0 && index < nativeStorage.getSlotCount() ? nativeStorage.getSlot(index) : null;
+        private StorageView<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> slot(int index) {
+            if (index < 0) return null;
+            if (nativeStorage instanceof SlottedStorage<?> raw) {
+                @SuppressWarnings("unchecked")
+                SlottedStorage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> slotted =
+                    (SlottedStorage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant>) raw;
+                return index < slotted.getSlotCount() ? slotted.getSlot(index) : null;
+            }
+            int n = 0;
+            for (StorageView<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> view : nativeStorage) {
+                if (n++ == index) return view;
+            }
+            return null;
         }
         private FluidVolume toVolume(net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant nativeVariant,
                                      long droplets) {
@@ -243,24 +335,36 @@ public final class PlatformStorage {
                 .map(variant -> FluidVolume.of(variant, FluidAmount.of(droplets / DROPLETS_PER_MB)))
                 .orElseGet(FluidVolume::empty);
         }
-        public int getTanks() { return nativeStorage.getSlotCount(); }
+        public int getTanks() {
+            if (nativeStorage instanceof SlottedStorage<?> slotted) return slotted.getSlotCount();
+            int count = 0;
+            for (StorageView<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> ignored : nativeStorage) count++;
+            return Math.max(1, count);
+        }
         public FluidVolume getFluidInTank(int index) {
-            SingleSlotStorage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> view = slot(index);
+            StorageView<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> view = slot(index);
             return view == null || view.isResourceBlank() ? FluidVolume.empty()
                 : toVolume(view.getResource(), view.getAmount());
         }
         public int getTankCapacity(int index) {
-            SingleSlotStorage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> view = slot(index);
+            StorageView<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> view = slot(index);
             return view == null ? 0 : bounded(view.getCapacity() / DROPLETS_PER_MB);
         }
         public boolean isFluidValid(int index, FluidVolume volume) {
-            SingleSlotStorage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> view = slot(index);
-            if (view == null || volume == null || volume.isEmpty() || !view.supportsInsertion()) return false;
+            StorageView<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> view = slot(index);
+            if (index < 0 || index >= getTanks() || volume == null || volume.isEmpty()) return false;
             var variant = FabricFluidVariants.fromApi(
                 volume.requireVariant(), registries).orElse(null);
             if (variant == null) return false;
             try (Transaction tx = FabricTransactionScope.begin()) {
-                return view.insert(variant, DROPLETS_PER_MB, tx) == DROPLETS_PER_MB;
+                if (view instanceof SingleSlotStorage<?> raw) {
+                    @SuppressWarnings("unchecked")
+                    SingleSlotStorage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> slot =
+                        (SingleSlotStorage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant>) raw;
+                    return slot.insert(variant, DROPLETS_PER_MB, tx) == DROPLETS_PER_MB;
+                }
+                // A generic Storage has no per-slot insertion semantics.
+                return nativeStorage.insert(variant, DROPLETS_PER_MB, tx) == DROPLETS_PER_MB;
             }
         }
 

@@ -84,7 +84,8 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
         },
         recipe -> DataResult.success(new RecipeFields(
             recipe.getId(), recipe.getGroup(), recipe.ingredientList(), recipe.ingredientCountList(),
-            LegacyResult.fromStack(recipe.output.create()),
+            recipe.deferredResult != null ? recipe.deferredResult
+                : LegacyResult.fromStack(recipe.resultTemplate().create()),
             recipe.requiredMicroJoules))
     );
 
@@ -93,7 +94,11 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
 
     final long requiredMicroJoules;
     final ImmutableSet<IngredientStack> requiredStacks;
-    final ItemStackTemplate output;
+    // Registry codecs run before item data-component defaults are bound. Never create
+    // an ItemStack while decoding the legacy result; materialize it on first use.
+    private final ItemStackTemplate eagerOutput;
+    private final LegacyResult deferredResult;
+    private volatile ItemStackTemplate materializedOutput;
     final String group;
 
     public AssemblyRecipe(Identifier name, long requiredMicroJoules,
@@ -103,11 +108,39 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
 
     private AssemblyRecipe(Identifier name, long requiredMicroJoules,
         ImmutableSet<IngredientStack> requiredStacks, ItemStackTemplate output, String group) {
+        this(name, requiredMicroJoules, requiredStacks, output, null, group);
+    }
+
+    private AssemblyRecipe(Identifier name, long requiredMicroJoules,
+        ImmutableSet<IngredientStack> requiredStacks, ItemStackTemplate output,
+        LegacyResult deferredResult, String group) {
+        if ((output == null) == (deferredResult == null)) {
+            throw new IllegalArgumentException("An assembly result must be either ready or deferred");
+        }
         this.requiredMicroJoules = requiredMicroJoules;
         this.requiredStacks = ImmutableSet.copyOf(requiredStacks);
-        this.output = output;
+        this.eagerOutput = output;
+        this.deferredResult = deferredResult;
         this.name = name;
         this.group = group == null ? "" : group;
+    }
+
+    private ItemStackTemplate resultTemplate() {
+        if (eagerOutput != null) {
+            return eagerOutput;
+        }
+        ItemStackTemplate resolved = materializedOutput;
+        if (resolved == null) {
+            synchronized (this) {
+                resolved = materializedOutput;
+                if (resolved == null) {
+                    // This is called after registry bootstrap, unlike fromCodec().
+                    resolved = deferredResult.template();
+                    materializedOutput = resolved;
+                }
+            }
+        }
+        return resolved;
     }
 
     public AssemblyRecipe(String name, long requiredMicroJoules,
@@ -126,7 +159,7 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
 
     public Set<ItemStack> getOutputs(IItemHandlerModifiable inputs) {
         return hasRequiredInputs(inputs)
-            ? ImmutableSet.of(output.create())
+            ? ImmutableSet.of(resultTemplate().create())
             : ImmutableSet.of();
     }
 
@@ -173,7 +206,7 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
     }
 
     public ItemStack assemble(RecipeInput input, HolderLookup.Provider registries) {
-        return hasRequiredInputs(input) ? output.create() : ItemStack.EMPTY;
+        return hasRequiredInputs(input) ? resultTemplate().create() : ItemStack.EMPTY;
     }
 
     public boolean canCraftInDimensions(int width, int height) {
@@ -181,7 +214,7 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
     }
 
     public ItemStack getResultItem(HolderLookup.Provider registries) {
-        return output.create();
+        return resultTemplate().create();
     }
 
     public NonNullList<Ingredient> getIngredients() {
@@ -199,7 +232,8 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
     }
 
     public Set<ItemStack> getOutputPreviews() {
-        return ImmutableSet.of();
+        // Preserve the real output and its data components for JEI previews.
+        return ImmutableSet.of(resultTemplate().create());
     }
 
     public List<RecipeDisplay> display() {
@@ -211,7 +245,7 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
         }
         return List.of(new ShapelessCraftingRecipeDisplay(
             ingredients,
-            new SlotDisplay.ItemStackSlotDisplay(output),
+            new SlotDisplay.ItemStackSlotDisplay(resultTemplate()),
             new SlotDisplay.ItemSlotDisplay(BCSiliconItems.ASSEMBLY_TABLE_ITEM.get())
         ));
     }
@@ -220,13 +254,16 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
         return true;
     }
 
-    @Override
+    public String getGroup() {
+        return group;
+    }
+
     public String group() {
         return group;
     }
 
-    public String getGroup() {
-        return group;
+    public boolean showNotification() {
+        return true;
     }
 
     public RecipeSerializer<? extends Recipe<RecipeInput>> getSerializer() {
@@ -280,7 +317,9 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
         private ItemStackTemplate template() {
             CompoundTag tag = parseLegacyTag();
             DataComponentPatch.Builder patch = DataComponentPatch.builder();
-            if (NbtCompat.contains(tag, "Damage", 99)) {
+            // Legacy Damage is an item variant id for non-damageable items such as
+            // coloured/filtered lenses, not durability. Keep it in CUSTOM_DATA.
+            if (NbtCompat.contains(tag, "Damage", 99) && new ItemStack(item).isDamageableItem()) {
                 patch.set(DataComponents.DAMAGE, Math.max(0, NbtCompat.getInt(tag, "Damage")));
                 tag.remove("Damage");
             }
@@ -326,7 +365,8 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
             }
             stacks.add(new IngredientStack(ingredients.get(index), count));
         }
-        return new AssemblyRecipe(id, requiredMicroJoules, ImmutableSet.copyOf(stacks), result.template(), group);
+        // Parsing registries on 26.X happens before ItemStack defaults/components are bound.
+        return new AssemblyRecipe(id, requiredMicroJoules, ImmutableSet.copyOf(stacks), null, result, group);
     }
 
     private static AssemblyRecipe readFromNetwork(RegistryFriendlyByteBuf buffer) {
@@ -352,7 +392,7 @@ public class AssemblyRecipe extends AssemblyRecipeBasic {
             Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, stack.ingredient);
             buffer.writeVarInt(stack.count);
         }
-        ItemStack.STREAM_CODEC.encode(buffer, output.create());
+        ItemStack.STREAM_CODEC.encode(buffer, resultTemplate().create());
         buffer.writeLong(requiredMicroJoules);
     }
 
