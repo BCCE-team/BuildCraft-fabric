@@ -421,6 +421,21 @@ public abstract class TileBC_Neptune extends BCBlockEntity implements IPayloadRe
         buildcraft.lib.compat.neoforge263.energy.IEnergyStorage legacy,
         team.reborn.energy.api.EnergyStorage view) {}
 
+    /** Multiple faces can expose the very same physical FE handler. Fabric
+     * snapshots must then share a single participant, or two face insertions
+     * in one outer transaction can both reserve the same free capacity. */
+    @Nullable
+    private EnergyBinding findSharedFabricEnergyBinding(
+        buildcraft.lib.compat.neoforge263.energy.IEnergyStorage handler) {
+        if (fabricEnergyUnsided != null && fabricEnergyUnsided.legacy() == handler) {
+            return fabricEnergyUnsided;
+        }
+        for (EnergyBinding candidate : fabricEnergyViews.values()) {
+            if (candidate.legacy() == handler) return candidate;
+        }
+        return null;
+    }
+
     @Override
     public team.reborn.energy.api.EnergyStorage buildcraftEnergyStorage(@Nullable Direction side) {
         var handler = getCapability(buildcraft.lib.misc.CapUtil.CAP_FE, side);
@@ -431,9 +446,12 @@ public abstract class TileBC_Neptune extends BCBlockEntity implements IPayloadRe
         }
         EnergyBinding binding = side == null ? fabricEnergyUnsided : fabricEnergyViews.get(side);
         if (binding == null || binding.legacy() != handler) {
-            binding = new EnergyBinding(handler,
-                buildcraft.lib.platform.storage.FabricOwnedStorageAdapters.energy(
-                    handler, this::markChunkDirty));
+            binding = findSharedFabricEnergyBinding(handler);
+            if (binding == null) {
+                binding = new EnergyBinding(handler,
+                    buildcraft.lib.platform.storage.FabricOwnedStorageAdapters.energy(
+                        handler, this::markChunkDirty));
+            }
             if (side == null) fabricEnergyUnsided = binding;
             else fabricEnergyViews.put(side, binding);
         }

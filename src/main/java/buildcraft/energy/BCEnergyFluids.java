@@ -182,11 +182,8 @@ public final class BCEnergyFluids {
         BCFluid.Properties properties = new BCFluid.Properties(source, flowing, block::get, bucket::get)
             .tickDelay(10 + 10 * (2 - heat)).density(density).heat(heat)
             .color(0xFFFFFFFF).flammable(data[8] > 0);
-        // Ordinary oil buckets need the same bounded spread as oil spouts.
-        // Refined fuels and gas tiers retain their own behaviour.
-        if ("oil".equals(name)) {
-            properties.maxSourceSpreadDistance(SPOUT_OIL_SPREAD_LIMIT);
-        }
+        // Like NeoForge, ordinary oil has no special source-radius restriction.
+        // Only the spout oil defined below has SPOUT_OIL_SPREAD_LIMIT.
         refs.source = FLUIDS.register(fluidName,
             () -> new BCFluid.Source(properties).setColour(data[4], data[5]));
         refs.flowing = FLUIDS.register(fluidName + "_flowing",

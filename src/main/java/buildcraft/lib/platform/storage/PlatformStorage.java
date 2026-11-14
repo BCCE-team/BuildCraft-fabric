@@ -337,9 +337,15 @@ public final class PlatformStorage {
         }
         public int getTanks() {
             if (nativeStorage instanceof SlottedStorage<?> slotted) return slotted.getSlotCount();
-            int count = 0;
-            for (StorageView<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> ignored : nativeStorage) count++;
-            return Math.max(1, count);
+            // Generic Fabric storages do not promise physical slots. Their views
+            // can all be extraction-only or entirely absent while insert() works.
+            // Keep an additional virtual insertion endpoint, as for items.
+            int count = 1;
+            for (StorageView<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> ignored : nativeStorage) {
+                if (count == Integer.MAX_VALUE) break;
+                count++;
+            }
+            return count;
         }
         public FluidVolume getFluidInTank(int index) {
             StorageView<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> view = slot(index);
@@ -348,7 +354,13 @@ public final class PlatformStorage {
         }
         public int getTankCapacity(int index) {
             StorageView<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> view = slot(index);
-            return view == null ? 0 : bounded(view.getCapacity() / DROPLETS_PER_MB);
+            if (view != null) return bounded(view.getCapacity() / DROPLETS_PER_MB);
+            // An unslotted Storage cannot disclose its physical tank capacity;
+            // the virtual endpoint only advertises a one-bucket probe capacity.
+            // Actual limits are enforced by native insert() in fill()/isFluidValid().
+            if (!(nativeStorage instanceof SlottedStorage<?>)
+                && index >= 0 && index < getTanks()) return 1000;
+            return 0;
         }
         public boolean isFluidValid(int index, FluidVolume volume) {
             StorageView<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> view = slot(index);

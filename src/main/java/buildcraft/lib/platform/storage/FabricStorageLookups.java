@@ -42,6 +42,19 @@ public final class FabricStorageLookups {
         if (!buildcraftTypes.isEmpty()) {
             registerTypes(buildcraftTypes.toArray(BlockEntityType<?>[]::new));
         }
+        // Another Fabric mod may already own a block-specific provider. Our
+        // registerTypes() deliberately does not replace it, but without these
+        // fallbacks its null result would hide the BCCE tile's own storages.
+        // A non-null native provider always retains priority.
+        ItemStorage.SIDED.registerFallback((level, pos, state, tile, side) ->
+            tile instanceof FabricBlockStorageProvider provider
+                ? provider.buildcraftItemStorage(side) : null);
+        FluidStorage.SIDED.registerFallback((level, pos, state, tile, side) ->
+            tile instanceof FabricBlockStorageProvider provider
+                ? provider.buildcraftFluidStorage(side) : null);
+        team.reborn.energy.api.EnergyStorage.SIDED.registerFallback((level, pos, state, tile, side) ->
+            tile instanceof FabricBlockStorageProvider provider
+                ? provider.buildcraftEnergyStorage(side) : null);
         installed = true;
     }
 
